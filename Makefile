@@ -1,7 +1,7 @@
 # Sales Strategy Reporting Agent - Makefile
 # Convenient commands for common tasks
 
-.PHONY: help setup install test clean run validate docs setup-drive test-drive
+.PHONY: help setup install test clean run validate docs setup-drive test-drive ask-chatgpt
 
 # Default target
 help:
@@ -10,6 +10,7 @@ help:
 	@echo "🤖 Interactive Agent (Recommended):"
 	@echo "  make agent        Launch interactive AI assistant"
 	@echo "  strategy-agent    (same as above, works from any directory)"
+	@echo "  make ask-chatgpt  Chat with ChatGPT in terminal"
 	@echo ""
 	@echo "Setup & Installation:"
 	@echo "  make setup        Run interactive setup for new users"
@@ -32,6 +33,10 @@ help:
 # Launch interactive AI agent
 agent:
 	@./bin/strategy-agent
+
+# Chat with ChatGPT in terminal
+ask-chatgpt:
+	@. venv/bin/activate && python scripts/core/chatgpt_terminal.py
 
 # Setup for new users
 setup:
