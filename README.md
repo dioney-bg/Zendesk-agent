@@ -33,6 +33,13 @@ make ai-report
 
 ## ⚡ Quick Commands
 
+### Interactive Agent (Recommended)
+```bash
+strategy-agent   # 🤖 Launch interactive AI assistant
+                 # Ask questions, run queries, analyze data
+```
+
+### Pre-built Reports
 ```bash
 make setup       # Interactive setup for new users
 make run         # Launch interactive menu
@@ -41,6 +48,34 @@ make validate    # Validate your configuration
 make docs        # Show documentation links
 make help        # Show all commands
 ```
+
+---
+
+## 🤖 Interactive AI Agent
+
+The **Sales Strategy Agent** is an interactive AI assistant that helps you analyze data on-demand.
+
+### What You Can Do:
+
+```bash
+# Start the agent
+strategy-agent
+
+# Then ask questions like:
+> "Show me AI penetration by leader"
+> "What's AMER Strategic segment penetration?"
+> "Compare this quarter to last quarter for EMEA"
+> "Create a breakdown by segment for Digital leader"
+```
+
+**Benefits:**
+- 💬 Natural language queries - no SQL knowledge needed
+- 📊 Instant data analysis and insights
+- 🎯 Ad-hoc questions answered on-the-spot
+- 🧠 Full context of Snowflake tables and conventions
+- 📈 Automatic trend comparisons and visualizations
+
+**Setup:** Requires Claude Code installed. See [docs/setup/TEAM_SETUP.md](docs/setup/TEAM_SETUP.md) for installation.
 
 ---
 

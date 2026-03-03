@@ -7,6 +7,10 @@
 help:
 	@echo "Sales Strategy Reporting Agent - Available Commands"
 	@echo ""
+	@echo "🤖 Interactive Agent (Recommended):"
+	@echo "  make agent        Launch interactive AI assistant"
+	@echo "  strategy-agent    (same as above, works from any directory)"
+	@echo ""
 	@echo "Setup & Installation:"
 	@echo "  make setup        Run interactive setup for new users"
 	@echo "  make install      Install Python dependencies"
@@ -22,6 +26,10 @@ help:
 	@echo "  make docs         Open documentation"
 	@echo ""
 	@echo "For more help, see: docs/setup/TEAM_SETUP.md"
+
+# Launch interactive AI agent
+agent:
+	@./bin/strategy-agent
 
 # Setup for new users
 setup:

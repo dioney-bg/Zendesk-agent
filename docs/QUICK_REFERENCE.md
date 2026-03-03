@@ -1,6 +1,38 @@
 # Quick Reference Guide
 
-## Daily Workflow
+## 🤖 Interactive AI Agent (Recommended)
+
+The fastest way to analyze data and answer questions:
+
+```bash
+# Start the interactive agent
+strategy-agent
+```
+
+Then ask questions in natural language:
+```
+> "Show me AI penetration by leader"
+> "What's AMER's Strategic segment penetration?"
+> "Compare Q1 to Q4 for EMEA"
+> "Break down Digital leader by segment"
+> "Show me top 10 accounts that adopted AI this quarter"
+```
+
+**Benefits:**
+- No need to remember SQL or command syntax
+- Instant answers to ad-hoc questions
+- Automatic visualizations and insights
+- Follows all reporting conventions (ordering, totals, etc.)
+
+**Setup:** Requires Claude Code installed:
+```bash
+brew install anthropics/claude/claude-code
+# or visit: https://docs.anthropic.com/claude-code
+```
+
+---
+
+## Daily Workflow (Pre-built Reports)
 
 ### 1. Generate Report (All Formats)
 ```bash

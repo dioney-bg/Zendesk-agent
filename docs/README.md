@@ -20,6 +20,7 @@ Welcome to the Sales Strategy Reporting Agent documentation.
 
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
+| **[Interactive Agent Guide](INTERACTIVE_AGENT.md)** | **AI assistant usage** | **Analyzing data interactively** |
 | **[Setup Guide](setup/TEAM_SETUP.md)** | First-time setup | Setting up on your laptop |
 | **[Quick Reference](QUICK_REFERENCE.md)** | Daily commands | Generating reports |
 | **[Google Drive Setup](GOOGLE_DRIVE_SETUP.md)** | Drive integration | Optional - for uploads |

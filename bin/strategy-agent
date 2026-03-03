@@ -1,0 +1,80 @@
+#!/bin/bash
+#
+# Sales Strategy Agent Launcher
+# Starts an interactive Claude Code session with full project context
+#
+
+set -e
+
+# Colors for output
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# Project directory (assumes script is in bin/)
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║                                                            ║${NC}"
+echo -e "${BLUE}║         📊 Sales Strategy Reporting Agent                 ║${NC}"
+echo -e "${BLUE}║                                                            ║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
+echo ""
+
+# Check if Claude Code is installed
+if ! command -v claude &> /dev/null; then
+    echo -e "${RED}❌ Claude Code is not installed${NC}"
+    echo ""
+    echo "Please install Claude Code first:"
+    echo ""
+    echo "  macOS:   brew install anthropics/claude/claude-code"
+    echo "  Or visit: https://docs.anthropic.com/claude-code"
+    echo ""
+    exit 1
+fi
+
+# Check if in project directory
+if [ ! -f "$PROJECT_DIR/CLAUDE.md" ]; then
+    echo -e "${RED}❌ Could not find project files${NC}"
+    echo "Expected to find CLAUDE.md in: $PROJECT_DIR"
+    exit 1
+fi
+
+# Check if Snowflake CLI is available
+if [ ! -f "/Applications/SnowflakeCLI.app/Contents/MacOS/snow" ]; then
+    echo -e "${YELLOW}⚠️  Snowflake CLI not found at expected location${NC}"
+    echo "Make sure Snowflake CLI is installed and configured."
+    echo ""
+fi
+
+# Check if virtual environment exists
+if [ ! -d "$PROJECT_DIR/venv" ]; then
+    echo -e "${YELLOW}⚠️  Virtual environment not found${NC}"
+    echo "Run 'make setup' first to configure the project."
+    echo ""
+fi
+
+echo -e "${GREEN}✅ Starting Sales Strategy Agent...${NC}"
+echo ""
+echo -e "${BLUE}Project:${NC} $PROJECT_DIR"
+echo -e "${BLUE}Context:${NC} CLAUDE.md loaded (Snowflake queries, conventions, patterns)"
+echo ""
+echo -e "${GREEN}🤖 Claude Code will start with full project knowledge.${NC}"
+echo -e "${GREEN}   Ask questions about accounts, run queries, generate reports!${NC}"
+echo ""
+echo -e "${YELLOW}Tip: Try asking:${NC}"
+echo "  - 'Show me AI penetration by leader'"
+echo "  - 'What's AMER Strategic segment penetration?'"
+echo "  - 'Compare this quarter to last quarter'"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# Navigate to project directory and start Claude Code
+cd "$PROJECT_DIR"
+
+# Start Claude Code
+# The CLAUDE.md file will be automatically loaded by Claude Code
+exec claude
