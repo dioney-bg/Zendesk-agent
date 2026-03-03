@@ -95,7 +95,34 @@ class ChatGPTTerminal:
             return assistant_message
 
         except Exception as e:
-            return f"{Colors.RED}Error: {e}{Colors.END}"
+            error_str = str(e)
+
+            # Handle specific error cases
+            if "403" in error_str or "Forbidden" in error_str:
+                return f"""{Colors.RED}❌ Authentication Error (403 Forbidden){Colors.END}
+
+Your API key or SSO session may have expired.
+
+{Colors.YELLOW}Please try:{Colors.END}
+  1. Regenerate your API key
+  2. Open: https://ai-gateway.zende.sk/v1/models (SSO login)
+  3. Update .env with new key if needed
+  4. Restart ask-chatgpt
+
+{Colors.YELLOW}Need help? Check docs/setup/TEAM_SETUP.md{Colors.END}"""
+
+            elif "401" in error_str or "Unauthorized" in error_str:
+                return f"""{Colors.RED}❌ Unauthorized (401){Colors.END}
+
+Your API key is invalid or expired.
+
+{Colors.YELLOW}Please:{Colors.END}
+  1. Check your .env file has: ZENDESK_AI_GATEWAY_KEY=your_key
+  2. Regenerate API key if needed
+  3. Restart ask-chatgpt"""
+
+            else:
+                return f"{Colors.RED}Error: {e}{Colors.END}"
 
     def clear_history(self):
         """Clear conversation history"""
