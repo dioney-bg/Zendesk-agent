@@ -1,0 +1,76 @@
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Environment Variables
+.env
+.env.local
+
+# Google API Credentials (NEVER COMMIT - Personal to each user)
+credentials.json
+token.json
+config/google_credentials.json
+config/token.json
+**/google_credentials.json
+**/token.json
+**/.google/
+*.oauth2
+client_secret*.json
+
+# Outputs
+outputs/reports/
+outputs/data/
+outputs/logs/
+
+# Claude Code settings
+.claude/settings.local.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Slack
+.slack/credentials.json
+
+# Snowflake
+snowflake/
+**/snow.toml
+**/snowflake.yml
+**/.snowsql/
+
+# Personal Configuration (DO NOT COMMIT)
+config/config.yaml.personal
+config/my_*.yaml
+config/reports/*_personal.yaml
+.user_config
+
+# API Keys and Tokens
+*.key
+*.pem
+*.token
+.credentials
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# Test outputs (team members testing locally)
+test_output/
+scratch/
+sandbox/

@@ -1,0 +1,103 @@
+# AI Penetration Report Configuration
+
+report:
+  name: "AI Penetration Report"
+  code: "ai_penetration"
+  description: "Analysis of AI product adoption (Copilot and AI Agents Advanced) across customer segments"
+
+# Data Sources
+data_sources:
+  accounts:
+    table: "PRESENTATION.CUSTOMER_EXPERIENCE.CUSTOMER_SUCCESS__CS_RESET_DASHBOARD"
+    filters:
+      - "AS_OF_DATE = 'Quarterly'"
+      - "CRM_NET_ARR_USD > 0"
+    date_field: "SERVICE_DATE"
+
+  ai_metrics:
+    table: "PRESENTATION.PRODUCT_ANALYTICS.AI_COMBINED_CRM_DAILY_SNAPSHOT"
+    date_field: "source_snapshot_date"
+    lag_days: 2  # Use data from 2 days ago
+
+  pipeline:
+    table: "FUNCTIONAL.GTM_SALES_OPS.GTMSI_CONSOLIDATED_PIPELINE_BOOKINGS"
+    date_label: "today"
+    products:
+      copilot: ["Copilot"]
+      aaa: ["Ultimate", "Ultimate_AR"]
+
+# Comparison Periods
+comparison:
+  current:
+    label: "Q1 FY2027"
+    date: "2026-03-02"  # Latest available
+
+  previous:
+    label: "Q4 FY2026 End"
+    date: "2026-01-31"
+
+# Metrics to Calculate
+metrics:
+  - name: "total_accounts"
+    label: "Total Accounts"
+    description: "All active accounts with ARR > 0"
+
+  - name: "ai_penetrated_accounts"
+    label: "AI Penetrated"
+    description: "Accounts with Copilot or AAA"
+
+  - name: "penetration_pct"
+    label: "Penetration %"
+    description: "Percentage of accounts with any AI product"
+    format: "percentage"
+
+  - name: "copilot_accounts"
+    label: "Copilot Users"
+    description: "Accounts with Copilot"
+
+  - name: "aaa_accounts"
+    label: "AAA Users"
+    description: "Accounts with AI Agents Advanced"
+
+  - name: "change_pct_points"
+    label: "Change (pp)"
+    description: "Penetration change in percentage points"
+    format: "percentage"
+
+# Breakdowns
+breakdowns:
+  - dimension: "leader"
+    label: "Leader"
+    include_total: true
+
+  - dimension: "segment"
+    label: "Market Segment"
+    include_total: true
+
+  - dimension: "region"
+    label: "Region"
+    include_total: true
+
+# Output Formatting
+output:
+  title: "AI Penetration Report - Q1 FY2027"
+  subtitle: "Copilot and AI Agents Advanced Adoption by Leader"
+
+  slack:
+    emoji: "🤖"
+    include_summary: true
+    include_details: true
+    highlight_top_movers: true
+
+  excel:
+    sheet_name: "AI Penetration"
+    freeze_panes: [1, 1]
+    auto_filter: true
+    conditional_formatting:
+      - column: "penetration_pct"
+        type: "color_scale"
+        colors: ["red", "yellow", "green"]
+
+  csv:
+    include_headers: true
+    delimiter: ","

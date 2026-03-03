@@ -1,0 +1,139 @@
+# Sales Strategy Reporting Agent - Configuration
+
+# Snowflake Connection
+snowflake:
+  connection_name: zendesk
+  account: ZENDESK-GLOBAL
+  warehouse: COEFFICIENT_WH
+  default_database: PRESENTATION
+  default_schema: CUSTOMER_EXPERIENCE
+
+# Available Reports
+reports:
+  ai_penetration:
+    name: "AI Penetration Report"
+    description: "AI product adoption metrics by leader with QoQ comparison"
+    enabled: true
+    schedule: daily
+    outputs:
+      - csv
+      - excel
+      - slack
+    config_file: "config/reports/ai_penetration.yaml"
+
+  account_health:
+    name: "Account Health Dashboard"
+    description: "Customer health scores and risk indicators"
+    enabled: false
+    schedule: weekly
+    outputs:
+      - excel
+      - google_sheets
+    config_file: "config/reports/account_health.yaml"
+
+  revenue_forecast:
+    name: "Revenue Forecast"
+    description: "ARR projections and pipeline analysis"
+    enabled: false
+    schedule: weekly
+    outputs:
+      - excel
+      - google_sheets
+    config_file: "config/reports/revenue_forecast.yaml"
+
+# Standard Breakdowns
+breakdowns:
+  leader:
+    order:
+      - AMER
+      - EMEA
+      - APAC
+      - LATAM
+      - SMB
+      - Digital
+
+  segment:
+    order:
+      - Enterprise
+      - Strategic
+      - Public Sector
+      - Commercial
+      - SMB
+      - Digital
+
+  region:
+    order:
+      - AMER
+      - EMEA
+      - APAC
+      - LATAM
+
+# Fiscal Calendar
+fiscal:
+  year_start_month: 2  # February
+  quarters:
+    Q1: [2, 3, 4]      # Feb, Mar, Apr
+    Q2: [5, 6, 7]      # May, Jun, Jul
+    Q3: [8, 9, 10]     # Aug, Sep, Oct
+    Q4: [11, 12, 1]    # Nov, Dec, Jan
+
+# Google Drive Integration
+google_drive:
+  enabled: true
+  root_folder_name: "Sales Strategy Reports"
+  folder_structure:
+    by_report: true      # Create subfolder per report type
+    by_date: true        # Create date-based subfolders (YYYY/MM)
+  file_naming:
+    include_timestamp: true
+    include_report_name: true
+    format: "{report_name}_{date}_{timestamp}"
+
+# Slack Integration
+slack:
+  enabled: true
+  default_channel: null  # Set to channel ID or leave null for clipboard
+  message_format: markdown
+  include_summary: true
+  include_charts: false
+
+# Output Configuration
+output:
+  base_dir: "outputs"
+  reports_dir: "outputs/reports"
+  data_dir: "outputs/data"
+  logs_dir: "outputs/logs"
+  organize_by_report: true  # Create subfolders per report type
+  retention_days: 90        # Auto-cleanup old files
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "outputs/logs/sales_strategy_agent.log"
+  console: true
+  file_rotation:
+    enabled: true
+    max_bytes: 10485760  # 10MB
+    backup_count: 5
+
+# Formatting
+formatting:
+  date_format: "%Y-%m-%d"
+  datetime_format: "%Y-%m-%d %H:%M:%S"
+  number_format:
+    thousands_separator: ","
+    decimal_places: 2
+  percentage_format:
+    decimal_places: 2
+    include_symbol: true
+
+# Email Distribution (Future)
+email:
+  enabled: false
+  smtp_server: null
+  from_address: null
+  distribution_lists:
+    leadership: []
+    regional_vps: []
+    csm_managers: []
