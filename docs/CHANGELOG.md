@@ -4,6 +4,40 @@ All notable changes to the Sales Strategy Reporting Agent are documented in this
 
 ---
 
+## [1.1.0] - 2026-03-03
+
+### 🤖 Interactive AI Agent
+
+#### Added
+- **Interactive AI Agent** - Natural language interface for data analysis
+- `CLAUDE.md` - Comprehensive project context for Claude Code
+- `bin/strategy-agent` - Launcher script for interactive sessions
+- `bin/install_strategy_agent` - Global command installation
+- `docs/INTERACTIVE_AGENT.md` - Complete usage guide
+- `make agent` command for quick access
+
+#### Features
+- Ask questions in natural language ("Show me AI penetration by leader")
+- Ad-hoc data analysis without SQL knowledge
+- Automatic query generation following all conventions
+- Real-time Snowflake integration
+- Context-aware responses with project knowledge
+
+#### Changed
+- Updated `README.md` to highlight interactive agent
+- Updated `docs/QUICK_REFERENCE.md` with agent examples
+- Updated `docs/setup/TEAM_SETUP.md` with Claude Code setup
+- Updated `docs/README.md` with agent documentation link
+- Enhanced `Makefile` with agent command
+
+#### Benefits
+- **Faster analysis** - No need to write SQL or Python
+- **Lower barrier to entry** - Team members can ask questions naturally
+- **Consistent results** - Agent follows all reporting conventions
+- **Self-service insights** - Reduces dependency on SQL experts
+
+---
+
 ## [1.0.0] - 2026-03-03
 
 ### Project Structure Reorganization

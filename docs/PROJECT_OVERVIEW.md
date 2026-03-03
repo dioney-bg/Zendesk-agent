@@ -17,6 +17,24 @@ This is a **Sales Strategy Reporting Agent** for the Zendesk Sales Strategy Team
 
 ## 🏗️ Architecture
 
+### Two Modes of Operation
+
+The system operates in two complementary modes:
+
+#### 1. 🤖 Interactive Agent Mode (Recommended)
+- **Natural language interface** via Claude Code
+- **Ad-hoc analysis** - ask questions, get instant answers
+- **Context-aware** - understands Snowflake schema, conventions, patterns
+- **No coding required** - accessible to all team members
+- **Command:** `strategy-agent`
+
+#### 2. 📋 Pre-built Report Mode
+- **Scheduled reports** via Python scripts
+- **Standardized outputs** - CSV, Excel, Slack formats
+- **Batch processing** - generate multiple reports
+- **Automation-ready** - can be scheduled via cron
+- **Command:** `make ai-report`
+
 ### Modular Design
 
 The agent follows a modular architecture where:
@@ -24,9 +42,42 @@ The agent follows a modular architecture where:
 - **Report classes** inherit from `BaseReport` and implement specific logic
 - **SQL queries** are stored separately for version control and reusability
 - **Configurations** are YAML-based for easy customization
+- **CLAUDE.md** provides comprehensive context for the interactive agent
 
 ### Data Flow
 
+#### Interactive Agent Flow
+```
+┌──────────────┐
+│     User     │
+│  "Show me    │
+│  AI pen by   │
+│  leader"     │
+└──────┬───────┘
+       │
+       ↓ (Natural Language)
+┌──────────────────┐
+│  Claude Code     │
+│  + CLAUDE.md     │
+│  (Context)       │
+└──────┬───────────┘
+       │
+       ↓ (Generated SQL)
+┌──────────────────┐
+│ SnowflakeCLI     │
+│ Execute Query    │
+└──────┬───────────┘
+       │
+       ↓ (Results)
+┌──────────────────┐
+│  Claude Code     │
+│  Format & Present│
+└──────┬───────────┘
+       │
+       └─→ Table Output with Insights
+```
+
+#### Pre-built Report Flow
 ```
 ┌─────────────┐
 │  Snowflake  │
@@ -63,6 +114,14 @@ The agent follows a modular architecture where:
 
 ```
 Zendesk-agent/
+│
+├── CLAUDE.md                    # Interactive agent context
+│
+├── bin/                         # Executable scripts
+│   ├── strategy-agent          # Launch interactive AI agent
+│   ├── install_strategy_agent  # Global command install
+│   ├── setup_for_new_user.sh  # Team member setup
+│   └── validate_setup.sh       # Configuration check
 │
 ├── config/                      # All configuration
 │   ├── config.yaml             # Main settings

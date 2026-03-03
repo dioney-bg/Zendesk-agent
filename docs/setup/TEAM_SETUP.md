@@ -8,9 +8,23 @@ Before you start, make sure you have:
 
 - [ ] Python 3.8 or higher installed
 - [ ] Git installed
+- [ ] **Claude Code installed** (for interactive agent - recommended!)
 - [ ] Snowflake CLI installed
 - [ ] Access to Zendesk Snowflake account (ZENDESK-GLOBAL)
 - [ ] Your Snowflake username and warehouse access
+
+### Installing Claude Code (Recommended)
+
+The interactive AI agent requires Claude Code:
+
+**macOS:**
+```bash
+brew install anthropics/claude/claude-code
+```
+
+**Or download from:** https://docs.anthropic.com/claude-code
+
+This enables the `strategy-agent` command for natural language data analysis!
 
 ## 🔧 Setup Steps (15 minutes)
 
@@ -33,7 +47,7 @@ cd Zendesk-agent
 We've created an interactive setup script to make this easy:
 
 ```bash
-./setup_for_new_user.sh
+make setup
 ```
 
 This will:
@@ -41,6 +55,7 @@ This will:
 - ✅ Install all dependencies
 - ✅ Configure your Snowflake connection
 - ✅ Test the connection
+- ✅ Install the strategy-agent command
 - ✅ Generate your first report
 
 **Or follow manual steps below:**
@@ -119,25 +134,43 @@ Generated files:
 
 ## 📊 Using the Agent
 
-### Generate Reports
+### 🤖 Interactive AI Agent (Recommended!)
+
+The easiest way to analyze data - just ask questions in natural language:
+
+```bash
+# Start the interactive agent
+strategy-agent
+
+# Or
+make agent
+```
+
+**Then ask questions like:**
+- "Show me AI penetration by leader"
+- "What's AMER's Strategic segment penetration?"
+- "Compare this quarter to last quarter"
+- "Break down EMEA by segment"
+
+**No SQL knowledge needed!** See [docs/INTERACTIVE_AGENT.md](../INTERACTIVE_AGENT.md) for full guide.
+
+---
+
+### 📋 Pre-built Reports
 
 **AI Penetration Report:**
 ```bash
-source venv/bin/activate
-python scripts/reports/ai_penetration.py
+make ai-report
 ```
-
-### Run Custom Queries
 
 **Interactive menu:**
 ```bash
-./run_agent.sh
+make run
 ```
 
-### Check Available Reports
-
+**Validate setup:**
 ```bash
-python scripts/list_reports.py
+make validate
 ```
 
 ---
@@ -312,11 +345,13 @@ git push origin feature/account-health-report
 
 Before you're done, verify:
 
+- [ ] Claude Code installed (`claude --version`) - for interactive agent
 - [ ] Virtual environment created and activated
 - [ ] Dependencies installed (`pip list` shows packages)
 - [ ] Snowflake CLI working (`snow --version`)
 - [ ] Snowflake authenticated (`snow sql -q "SELECT 1"`)
 - [ ] Config updated with your settings
+- [ ] `strategy-agent` command works from any directory
 - [ ] First report generated successfully
 - [ ] Output files created in `outputs/reports/`
 - [ ] You can read the generated reports
@@ -327,11 +362,17 @@ Before you're done, verify:
 
 You now have your own personal copy of the Sales Strategy Reporting Agent!
 
+**Try the interactive agent first:**
+```bash
+strategy-agent
+```
+
 **Next steps:**
-- Explore available reports in `scripts/reports/`
-- Read `docs/QUICK_REFERENCE.md` for common commands
-- Generate your first insights
-- Share results with your team
+- Ask the agent questions about your data!
+- Read [docs/INTERACTIVE_AGENT.md](../INTERACTIVE_AGENT.md) for tips
+- Read [docs/QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for common commands
+- Explore pre-built reports in `scripts/reports/`
+- Generate and share insights with your team
 
 **Questions?** Contact Dioney or check the documentation.
 
