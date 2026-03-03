@@ -132,6 +132,66 @@ Generated files:
 
 ---
 
+## 🔗 Google Drive Setup (Optional)
+
+**Want to automatically upload reports to the team's shared drive?**
+
+This is optional but recommended for team collaboration. Reports will upload to:
+**SalesStrategy / Strategy-agent** (shared drive folder)
+
+### Prerequisites
+
+- [ ] Access to SalesStrategy shared drive (ask admin to add you)
+- [ ] ~20 minutes for first-time setup
+
+### Quick Setup
+
+```bash
+make setup-drive
+```
+
+This interactive script will:
+1. Guide you through creating your personal OAuth client
+2. Help you authenticate with Google
+3. Test your shared drive access
+4. Verify uploads work
+
+**See full guide:** [docs/GOOGLE_DRIVE_SETUP.md](../GOOGLE_DRIVE_SETUP.md)
+
+### What Gets Created
+
+**Personal credentials (never committed):**
+- `config/google_credentials.json` - Your OAuth client ID
+- `config/token.json` - Your personal access token
+
+Both files are gitignored for security.
+
+### Test Your Setup
+
+```bash
+# Test shared drive connection
+make test-drive
+
+# Generate report (auto-uploads to shared drive)
+make ai-report
+```
+
+### Troubleshooting
+
+**"Shared drive not found"**
+- Ask admin to add you to SalesStrategy shared drive
+- Verify drive name in `config/config.yaml`
+
+**"Old token doesn't work"**
+```bash
+rm config/token.json
+make setup-drive  # Re-authenticate
+```
+
+**Full troubleshooting:** [docs/GOOGLE_DRIVE_SETUP.md#troubleshooting](../GOOGLE_DRIVE_SETUP.md#troubleshooting)
+
+---
+
 ## 📊 Using the Agent
 
 ### 🤖 Interactive AI Agent (Recommended!)
@@ -345,6 +405,7 @@ git push origin feature/account-health-report
 
 Before you're done, verify:
 
+**Required:**
 - [ ] Claude Code installed (`claude --version`) - for interactive agent
 - [ ] Virtual environment created and activated
 - [ ] Dependencies installed (`pip list` shows packages)
@@ -355,6 +416,12 @@ Before you're done, verify:
 - [ ] First report generated successfully
 - [ ] Output files created in `outputs/reports/`
 - [ ] You can read the generated reports
+
+**Optional (Google Drive):**
+- [ ] Google Drive OAuth client created
+- [ ] Authenticated with Google (`config/token.json` exists)
+- [ ] Shared drive access verified (`make test-drive` passes)
+- [ ] Test upload successful
 
 ---
 

@@ -223,6 +223,59 @@ git log --all --full-history -- config/token.json
 
 **Recommendation:** Option A is fine for internal team. Option B if paranoid about security.
 
+### Google Drive - Shared Drives (Team Drives)
+
+**NEW: Shared drive support for team collaboration**
+
+**How shared drives work with OAuth:**
+- Each person still has their own OAuth credentials (Option A or B above)
+- Each person still gets their own personal `token.json`
+- The difference: files upload to a centralized shared drive location
+- Everyone with shared drive access can see/download the reports
+
+**Shared Drive Permissions Model:**
+```
+Personal OAuth     Personal Token     Shared Drive Access
+    (you)      →      (you)       →   (managed by admin)
+                                            ↓
+                                      All team can see
+```
+
+**Key Points:**
+- ✅ Your OAuth credentials are still yours alone
+- ✅ Your token is still personal (never shared)
+- ✅ Shared drive access is separate (Google Drive permissions)
+- ✅ Admin controls who has shared drive access
+- ⚠️ Files uploaded to shared drive are visible to all members
+
+**Privacy isolation:**
+- You can only upload to folders you have permission to access
+- You can't access other team members' personal OAuth tokens
+- Your authentication is separate from file sharing permissions
+- Shared drive membership ≠ shared OAuth credentials
+
+**Configuration:**
+```yaml
+google_drive:
+  use_shared_drive: true              # Enable shared drive mode
+  shared_drive_name: "SalesStrategy"  # Name of the shared drive
+  target_folder_name: "Strategy-agent" # Folder for uploads
+```
+
+**To enable:**
+1. Admin adds you to "SalesStrategy" shared drive
+2. You run `make setup-drive` (creates YOUR credentials)
+3. You authenticate with YOUR Google account
+4. Your reports upload to shared location
+5. Everyone with shared drive access can see the reports
+
+**Security considerations:**
+- ✅ Each person's OAuth setup is independent
+- ✅ No shared tokens between team members
+- ✅ Shared drive access controlled by Google Drive admin
+- ⚠️ Reports in shared drive are visible to all members
+- ⚠️ Make sure you trust everyone with shared drive access
+
 ### Slack
 
 **Authentication Method:** OAuth or CLI auth

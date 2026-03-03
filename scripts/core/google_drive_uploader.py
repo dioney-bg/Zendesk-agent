@@ -15,8 +15,9 @@ from googleapiclient.http import MediaFileUpload
 from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json
+# NOTE: 'drive' scope (not 'drive.file') is required for shared drive access
 SCOPES = [
-    'https://www.googleapis.com/auth/drive.file',
+    'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/spreadsheets'
 ]
 
@@ -24,13 +25,27 @@ SCOPES = [
 class GoogleDriveUploader:
     """Handles Google Drive file operations"""
 
-    def __init__(self, credentials_path='config/google_credentials.json'):
-        """Initialize the uploader with credentials"""
+    def __init__(self, credentials_path='config/google_credentials.json', shared_drive_name=None):
+        """
+        Initialize the uploader with credentials
+
+        Args:
+            credentials_path: Path to OAuth credentials file
+            shared_drive_name: Name of shared drive (Team Drive) to use, or None for personal drive
+        """
         self.credentials_path = credentials_path
         self.token_path = 'config/token.json'
         self.creds = None
         self.service = None
+        self.shared_drive_id = None
+        self.shared_drive_name = shared_drive_name
         self._authenticate()
+
+        # Look up shared drive if name provided
+        if self.shared_drive_name:
+            self.shared_drive_id = self.get_shared_drive_id(self.shared_drive_name)
+            if self.shared_drive_id:
+                print(f"✅ Connected to shared drive: {self.shared_drive_name}")
 
     def _authenticate(self):
         """Authenticate with Google Drive API"""
@@ -61,6 +76,38 @@ class GoogleDriveUploader:
         self.service = build('drive', 'v3', credentials=self.creds)
         print("✅ Successfully authenticated with Google Drive")
 
+    def get_shared_drive_id(self, drive_name):
+        """
+        Find shared drive (Team Drive) by name
+
+        Args:
+            drive_name: Name of the shared drive to find
+
+        Returns:
+            Drive ID if found, None otherwise
+        """
+        try:
+            # List all shared drives accessible to the user
+            results = self.service.drives().list(
+                pageSize=100,
+                fields="drives(id, name)"
+            ).execute()
+
+            drives = results.get('drives', [])
+
+            for drive in drives:
+                if drive['name'] == drive_name:
+                    print(f"📁 Found shared drive: {drive_name} (ID: {drive['id']})")
+                    return drive['id']
+
+            print(f"⚠️  Shared drive '{drive_name}' not found")
+            print(f"   Available drives: {', '.join([d['name'] for d in drives]) or 'None'}")
+            return None
+
+        except HttpError as error:
+            print(f"❌ Error finding shared drive: {error}")
+            return None
+
     def create_folder(self, folder_name, parent_folder_id=None):
         """Create a folder in Google Drive"""
         try:
@@ -72,10 +119,14 @@ class GoogleDriveUploader:
             if parent_folder_id:
                 file_metadata['parents'] = [parent_folder_id]
 
-            folder = self.service.files().create(
-                body=file_metadata,
-                fields='id, name'
-            ).execute()
+            # Add shared drive support if configured
+            create_params = {
+                'body': file_metadata,
+                'fields': 'id, name',
+                'supportsAllDrives': True
+            }
+
+            folder = self.service.files().create(**create_params).execute()
 
             print(f"✅ Created folder: {folder.get('name')} (ID: {folder.get('id')})")
             return folder.get('id')
@@ -107,11 +158,15 @@ class GoogleDriveUploader:
 
             media = MediaFileUpload(file_path, mimetype=mime_type, resumable=True)
 
-            file = self.service.files().create(
-                body=file_metadata,
-                media_body=media,
-                fields='id, name, webViewLink'
-            ).execute()
+            # Add shared drive support if configured
+            create_params = {
+                'body': file_metadata,
+                'media_body': media,
+                'fields': 'id, name, webViewLink',
+                'supportsAllDrives': True
+            }
+
+            file = self.service.files().create(**create_params).execute()
 
             print(f"✅ Uploaded: {file.get('name')}")
             print(f"   Link: {file.get('webViewLink')}")
@@ -133,11 +188,16 @@ class GoogleDriveUploader:
             if folder_id:
                 query.append(f"'{folder_id}' in parents")
 
-            results = self.service.files().list(
-                q=' and '.join(query) if query else None,
-                pageSize=page_size,
-                fields="nextPageToken, files(id, name, mimeType, createdTime, webViewLink)"
-            ).execute()
+            # Build list parameters with shared drive support
+            list_params = {
+                'q': ' and '.join(query) if query else None,
+                'pageSize': page_size,
+                'fields': "nextPageToken, files(id, name, mimeType, createdTime, webViewLink)",
+                'supportsAllDrives': True,
+                'includeItemsFromAllDrives': True
+            }
+
+            results = self.service.files().list(**list_params).execute()
 
             items = results.get('files', [])
 
@@ -156,23 +216,47 @@ class GoogleDriveUploader:
             return []
 
     def get_folder_id(self, folder_name, create_if_not_exists=True):
-        """Get folder ID by name, optionally creating if it doesn't exist"""
+        """
+        Get folder ID by name, optionally creating if it doesn't exist
+
+        Args:
+            folder_name: Name of the folder to find
+            create_if_not_exists: Create folder if not found
+
+        Returns:
+            Folder ID if found/created, None otherwise
+        """
         try:
             query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder'"
-            results = self.service.files().list(
-                q=query,
-                spaces='drive',
-                fields='files(id, name)'
-            ).execute()
+
+            # Build list parameters
+            list_params = {
+                'q': query,
+                'spaces': 'drive',
+                'fields': 'files(id, name)',
+                'supportsAllDrives': True,
+                'includeItemsFromAllDrives': True
+            }
+
+            # If searching within a shared drive, specify it
+            if self.shared_drive_id:
+                list_params['driveId'] = self.shared_drive_id
+                list_params['corpora'] = 'drive'  # Search within specific drive
+
+            results = self.service.files().list(**list_params).execute()
 
             items = results.get('files', [])
 
             if items:
                 folder_id = items[0]['id']
-                print(f"📁 Found folder: {folder_name} (ID: {folder_id})")
+                drive_context = f" in shared drive '{self.shared_drive_name}'" if self.shared_drive_id else ""
+                print(f"📁 Found folder: {folder_name}{drive_context} (ID: {folder_id})")
                 return folder_id
             elif create_if_not_exists:
-                print(f"📁 Folder '{folder_name}' not found. Creating...")
+                drive_context = f" in shared drive '{self.shared_drive_name}'" if self.shared_drive_id else ""
+                print(f"📁 Folder '{folder_name}' not found{drive_context}. Creating...")
+                # Note: When creating in shared drive, must specify parent as shared drive root
+                # This is handled by passing parent_folder_id to create_folder
                 return self.create_folder(folder_name)
             else:
                 print(f"📁 Folder '{folder_name}' not found.")

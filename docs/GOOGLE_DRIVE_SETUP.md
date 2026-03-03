@@ -2,6 +2,89 @@
 
 Follow these steps to set up Google Drive integration for automated report uploads.
 
+## 🚀 Quick Start (Recommended)
+
+**For most users, use the automated setup script:**
+
+```bash
+make setup-drive
+```
+
+This interactive script will:
+1. Guide you through OAuth client creation
+2. Help you download credentials
+3. Run authentication flow
+4. Test shared drive access
+5. Verify everything works
+
+**Time:** ~15-20 minutes (first time)
+
+Continue reading below for manual setup or troubleshooting.
+
+## 🆕 Shared Drive (Team Drive) vs Personal Drive
+
+**The Sales Strategy Agent supports both Personal Google Drive and Shared Drives (Team Drives).**
+
+### Shared Drive Mode (Recommended for Teams)
+
+**Use this when:**
+- You want all reports in one centralized location
+- Multiple team members need access to reports
+- You want easy collaboration and file sharing
+- You have access to a SalesStrategy shared drive
+
+**How it works:**
+- Reports upload to **SalesStrategy / Strategy-agent** folder
+- Everyone with shared drive access can view/download reports
+- Each person still uses their own OAuth credentials
+- Configured in `config/config.yaml` with `use_shared_drive: true`
+
+### Personal Drive Mode
+
+**Use this when:**
+- You want reports in your personal Google Drive
+- You're testing or doing personal analysis
+- You don't have access to the shared drive yet
+- Configured in `config/config.yaml` with `use_shared_drive: false`
+
+**How it works:**
+- Reports upload to **My Drive / Sales Strategy Reports**
+- Only you can see these reports
+- Still uses your personal OAuth credentials
+
+### Switching Between Modes
+
+Edit `config/config.yaml`:
+```yaml
+google_drive:
+  use_shared_drive: true  # or false for personal drive
+  shared_drive_name: "SalesStrategy"
+  target_folder_name: "Strategy-agent"
+```
+
+---
+
+## 🔑 OAuth Scopes for Shared Drives
+
+**IMPORTANT:** Shared drive access requires the full `drive` scope, not `drive.file`.
+
+**What this means:**
+- **Old scope (`drive.file`):** Only access files created by the app
+- **New scope (`drive`):** Access all files in your Drive and shared drives
+
+**Security implications:**
+- ✅ You control which shared drives you grant access to
+- ✅ Your OAuth token is still personal and never shared
+- ✅ Each person authenticates with their own Google account
+- ⚠️ The app can see/modify files you have access to
+
+**If you previously set up Google Drive:**
+1. Delete `config/token.json`
+2. Re-run setup script: `make setup-drive`
+3. Re-authenticate with the new scope
+
+---
+
 ## 🔐 Security First
 
 **IMPORTANT:** Each team member needs **their own Google Drive authentication**. This guide explains two options:
@@ -171,45 +254,136 @@ The credentials are now saved in `config/token.json` and will be reused automati
 - Delete `config/token.json`
 - Run the uploader script again to re-authenticate
 
+### Shared Drive Issues
+
+#### "Shared drive not found"
+**Symptoms:**
+- Can't find "SalesStrategy" shared drive
+- Script shows "Available drives: None"
+
+**Solutions:**
+1. Verify shared drive name in `config/config.yaml` matches exactly
+2. Ask admin to add you to the SalesStrategy shared drive
+3. Check you're using the correct Google account
+4. Make sure you re-authenticated with the `drive` scope (not `drive.file`)
+
+**How to check:**
+```bash
+make test-drive
+# Should show: ✅ Connected to shared drive: SalesStrategy
+```
+
+#### "Cannot access Strategy-agent folder"
+**Symptoms:**
+- Connected to shared drive but can't find folder
+- Permission denied on folder access
+
+**Solutions:**
+- The folder will be created automatically on first upload
+- If it exists, verify you have access permissions
+- Check with team if folder was renamed/moved
+
+#### "Old token doesn't work with shared drive"
+**Symptoms:**
+- Previously worked with personal drive
+- Now getting permission errors
+
+**Solution:**
+```bash
+# Delete old token (had old scope)
+rm config/token.json
+
+# Re-authenticate with new scope
+make setup-drive
+```
+
+#### "Wrong shared drive"
+**Symptoms:**
+- Connected to wrong shared drive
+- Multiple drives with similar names
+
+**Solution:**
+- Update exact drive name in `config/config.yaml`
+- Drive names are case-sensitive
+- Use `make test-drive` to verify
+
 ## Security Notes
 
 - ✅ `google_credentials.json` and `token.json` are in `.gitignore`
 - ✅ Never commit these files to version control
 - ✅ OAuth tokens are stored locally and encrypted
-- ✅ Only you have access to files uploaded by this app
+- ✅ Each person uses their own authentication (no shared tokens)
+
+### Shared Drive Permissions Model
+
+**Personal OAuth Client + Personal Token:**
+- Each person creates their own OAuth client (or uses shared client via Option A)
+- Each person authenticates with their own Google account
+- Each person gets their own access token (`token.json`)
+- No tokens are shared between team members
+
+**File Access in Shared Drive:**
+- Files uploaded to shared drive are accessible to all drive members
+- This is controlled by Google Drive sharing settings, not OAuth
+- Team members can see files uploaded by others (if they have shared drive access)
+- Each person's `token.json` only grants access to what THAT person can access in Google
+
+**Privacy Isolation:**
+- Your OAuth credentials = Your personal app identity
+- Your token = Your personal access to YOUR Google account
+- Sharing OAuth client ≠ sharing file access
+- File access determined by shared drive membership (managed by admin)
 
 ## Next Steps
 
 Once authenticated, you can:
 
-1. **Manual upload:**
+1. **Test your connection:**
    ```bash
-   python scripts/google_drive_uploader.py
+   make test-drive
    ```
 
-2. **Full pipeline (generate + upload):**
+2. **Generate AI report (with auto-upload):**
    ```bash
-   python scripts/run_report_pipeline.py
+   make ai-report
    ```
 
-3. **Skip upload (local only):**
+3. **Validate full setup:**
    ```bash
-   python scripts/run_report_pipeline.py --no-drive
+   make validate
+   ```
+
+4. **Manual test upload:**
+   ```bash
+   python scripts/core/google_drive_uploader.py
    ```
 
 ## Folder Structure in Google Drive
 
-The script will create this structure:
+### Shared Drive Mode (Recommended)
+
+```
+Shared drives/
+└── SalesStrategy/
+    └── Strategy-agent/
+        ├── ai_penetration_20260303_100000.csv
+        ├── ai_penetration_20260303_100000.xlsx
+        └── ... (timestamped reports)
+```
+
+All team members with shared drive access can view these reports.
+
+### Personal Drive Mode
 
 ```
 My Drive/
-└── Zendesk AI Reports/
-    ├── ai_penetration_report_20260303_100000.csv
-    ├── ai_penetration_report_20260303_100000.xlsx
+└── Sales Strategy Reports/
+    ├── ai_penetration_20260303_100000.csv
+    ├── ai_penetration_20260303_100000.xlsx
     └── ... (timestamped reports)
 ```
 
-You can organize into subfolders manually if needed. The script will always use the main "Zendesk AI Reports" folder.
+Only you can see these reports in your personal drive.
 
 ---
 

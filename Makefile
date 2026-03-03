@@ -1,7 +1,7 @@
 # Sales Strategy Reporting Agent - Makefile
 # Convenient commands for common tasks
 
-.PHONY: help setup install test clean run validate docs
+.PHONY: help setup install test clean run validate docs setup-drive test-drive
 
 # Default target
 help:
@@ -13,8 +13,10 @@ help:
 	@echo ""
 	@echo "Setup & Installation:"
 	@echo "  make setup        Run interactive setup for new users"
+	@echo "  make setup-drive  Set up Google Drive integration (optional)"
 	@echo "  make install      Install Python dependencies"
 	@echo "  make validate     Validate your setup"
+	@echo "  make test-drive   Test Google Drive connection"
 	@echo ""
 	@echo "Running Reports:"
 	@echo "  make run          Launch interactive menu"
@@ -35,6 +37,10 @@ agent:
 setup:
 	@./bin/setup_for_new_user.sh
 
+# Setup Google Drive integration
+setup-drive:
+	@./bin/setup_google_drive.sh
+
 # Install dependencies
 install:
 	@echo "Installing dependencies..."
@@ -46,6 +52,10 @@ install:
 # Validate setup
 validate:
 	@./bin/validate_setup.sh
+
+# Test Google Drive connection
+test-drive:
+	@. venv/bin/activate && python scripts/core/test_shared_drive.py
 
 # Run interactive menu
 run:

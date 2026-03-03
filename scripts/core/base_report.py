@@ -14,6 +14,12 @@ from abc import ABC, abstractmethod
 from .snowflake_client import SnowflakeClient
 from .report_formatter import ReportFormatter
 
+try:
+    from .google_drive_uploader import GoogleDriveUploader
+    GOOGLE_DRIVE_AVAILABLE = True
+except ImportError:
+    GOOGLE_DRIVE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -48,6 +54,27 @@ class BaseReport(ABC):
             connection_name=sf_config.get('connection_name')
         )
         self.formatter = ReportFormatter(self.config)
+
+        # Initialize Google Drive uploader if enabled
+        self.drive_uploader = None
+        drive_config = self.config.get('google_drive', {})
+        if drive_config.get('enabled', False) and GOOGLE_DRIVE_AVAILABLE:
+            try:
+                # Check if using shared drive
+                if drive_config.get('use_shared_drive', False):
+                    shared_drive_name = drive_config.get('shared_drive_name')
+                    self.drive_uploader = GoogleDriveUploader(
+                        shared_drive_name=shared_drive_name
+                    )
+                else:
+                    # Personal drive mode
+                    self.drive_uploader = GoogleDriveUploader()
+
+                logger.info("Google Drive uploader initialized")
+            except FileNotFoundError:
+                logger.warning("Google Drive credentials not found. Uploads disabled.")
+            except Exception as e:
+                logger.warning(f"Could not initialize Google Drive: {e}")
 
         logger.info(f"Initialized report: {self.report_code}")
 
@@ -207,12 +234,82 @@ class BaseReport(ABC):
             emoji=emoji
         )
 
-    def run(self, formats: List[str] = None) -> Dict[str, Any]:
+    def upload_to_drive(self, file_path: str) -> Optional[Dict[str, Any]]:
+        """
+        Upload a file to Google Drive
+
+        Args:
+            file_path: Path to file to upload
+
+        Returns:
+            Upload result dict with 'id', 'name', 'link' or None if failed
+        """
+        if not self.drive_uploader:
+            logger.warning("Google Drive uploader not initialized")
+            return None
+
+        try:
+            drive_config = self.config.get('google_drive', {})
+
+            # Determine target folder
+            if drive_config.get('use_shared_drive', False):
+                # Shared drive mode - use target folder
+                folder_name = drive_config.get('target_folder_name', 'Strategy-agent')
+
+                # Optionally create subfolder by report type
+                if drive_config.get('folder_structure', {}).get('by_report', False):
+                    # Get main folder first
+                    main_folder_id = self.drive_uploader.get_folder_id(
+                        folder_name,
+                        create_if_not_exists=True
+                    )
+
+                    if main_folder_id:
+                        # Create report-specific subfolder
+                        report_folder_name = self.report_code
+                        # Search for subfolder within main folder
+                        # Note: This requires additional logic to search within a parent
+                        # For now, we'll just use the main folder
+                        folder_id = main_folder_id
+                    else:
+                        logger.error(f"Could not create folder: {folder_name}")
+                        return None
+                else:
+                    folder_id = self.drive_uploader.get_folder_id(
+                        folder_name,
+                        create_if_not_exists=True
+                    )
+            else:
+                # Personal drive mode - use root folder
+                folder_name = drive_config.get('root_folder_name', 'Sales Strategy Reports')
+                folder_id = self.drive_uploader.get_folder_id(
+                    folder_name,
+                    create_if_not_exists=True
+                )
+
+            if not folder_id:
+                logger.error("Could not determine target folder")
+                return None
+
+            # Upload file
+            result = self.drive_uploader.upload_file(file_path, folder_id=folder_id)
+
+            if result:
+                logger.info(f"✅ Uploaded to Google Drive: {result.get('link')}")
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Error uploading to Google Drive: {e}")
+            return None
+
+    def run(self, formats: List[str] = None, upload_to_drive: bool = None) -> Dict[str, Any]:
         """
         Run the complete report pipeline
 
         Args:
             formats: List of output formats (csv, excel, slack)
+            upload_to_drive: Whether to upload files to Google Drive (None = use config default)
 
         Returns:
             Dictionary of generated outputs
@@ -221,6 +318,11 @@ class BaseReport(ABC):
             # Get default formats from config
             report_info = self.config.get('reports', {}).get(self.report_code, {})
             formats = report_info.get('outputs', ['csv', 'excel'])
+
+        # Determine if we should upload to Drive
+        if upload_to_drive is None:
+            drive_config = self.config.get('google_drive', {})
+            upload_to_drive = drive_config.get('enabled', False) and self.drive_uploader is not None
 
         logger.info(f"Running report '{self.report_code}' with formats: {formats}")
 
@@ -239,11 +341,23 @@ class BaseReport(ABC):
                 results['csv'] = csv_path
                 logger.info(f"✅ CSV: {csv_path}")
 
+                # Upload to Google Drive if enabled
+                if upload_to_drive:
+                    drive_result = self.upload_to_drive(csv_path)
+                    if drive_result:
+                        results['csv_drive_link'] = drive_result.get('link')
+
         if 'excel' in formats:
             excel_path = self.save_excel(data)
             if excel_path:
                 results['excel'] = excel_path
                 logger.info(f"✅ Excel: {excel_path}")
+
+                # Upload to Google Drive if enabled
+                if upload_to_drive:
+                    drive_result = self.upload_to_drive(excel_path)
+                    if drive_result:
+                        results['excel_drive_link'] = drive_result.get('link')
 
         if 'slack' in formats:
             slack_msg = self.format_slack(data)

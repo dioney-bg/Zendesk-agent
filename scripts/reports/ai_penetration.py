@@ -183,8 +183,12 @@ def main():
         print("\nGenerated files:")
         if 'csv' in results:
             print(f"  📄 CSV: {results['csv']}")
+            if 'csv_drive_link' in results:
+                print(f"     🔗 Google Drive: {results['csv_drive_link']}")
         if 'excel' in results:
             print(f"  📊 Excel: {results['excel']}")
+            if 'excel_drive_link' in results:
+                print(f"     🔗 Google Drive: {results['excel_drive_link']}")
         if 'slack' in results:
             # Copy to clipboard
             subprocess.run(['pbcopy'], input=results['slack'].encode())

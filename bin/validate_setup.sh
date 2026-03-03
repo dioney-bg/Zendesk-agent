@@ -142,13 +142,53 @@ fi
 
 # Check 12: Permissions
 echo -n "Checking script permissions... "
-if [ -x "setup_for_new_user.sh" ] && [ -x "run_agent.sh" ]; then
+if [ -x "bin/setup_for_new_user.sh" ] && [ -x "bin/run_agent.sh" ]; then
     echo -e "${GREEN}✓${NC} Executable"
 else
     echo -e "${YELLOW}!${NC} Setting permissions..."
-    chmod +x *.sh scripts/*.sh 2>/dev/null
+    chmod +x bin/*.sh 2>/dev/null
     echo -e "${GREEN}✓${NC} Fixed"
     ((WARNINGS++))
+fi
+
+# Check 13: Google Drive credentials (optional)
+echo -n "Checking Google Drive credentials... "
+if [ -f "config/google_credentials.json" ]; then
+    echo -e "${GREEN}✓${NC} Found"
+else
+    echo -e "${YELLOW}⊘${NC} Not configured (optional - run: make setup-drive)"
+    ((WARNINGS++))
+fi
+
+# Check 14: Google Drive authentication (optional)
+echo -n "Checking Google Drive auth token... "
+if [ -f "config/google_credentials.json" ]; then
+    if [ -f "config/token.json" ]; then
+        echo -e "${GREEN}✓${NC} Authenticated"
+    else
+        echo -e "${YELLOW}⊘${NC} Not authenticated (run: make setup-drive)"
+        ((WARNINGS++))
+    fi
+else
+    echo -e "${YELLOW}⊘${NC} Skipped (no credentials)"
+fi
+
+# Check 15: Shared drive access (optional)
+echo -n "Checking shared drive access... "
+if [ -f "config/google_credentials.json" ] && [ -f "config/token.json" ]; then
+    if [ -d "venv" ]; then
+        source venv/bin/activate
+        if python scripts/core/test_shared_drive.py &>/dev/null; then
+            echo -e "${GREEN}✓${NC} Shared drive accessible"
+        else
+            echo -e "${YELLOW}⊘${NC} Cannot access shared drive (run: make test-drive for details)"
+            ((WARNINGS++))
+        fi
+    else
+        echo -e "${YELLOW}⊘${NC} Skipped (no venv)"
+    fi
+else
+    echo -e "${YELLOW}⊘${NC} Skipped (not configured)"
 fi
 
 echo ""

@@ -80,6 +80,11 @@ fiscal:
 # Google Drive Integration
 google_drive:
   enabled: true
+  # Shared Drive (Team Drive) Settings
+  use_shared_drive: true               # Set to false for personal Google Drive
+  shared_drive_name: "SalesStrategy"   # Name of the shared drive
+  target_folder_name: "Strategy-agent" # Folder within shared drive for uploads
+  # Personal Drive Settings (used when use_shared_drive: false)
   root_folder_name: "Sales Strategy Reports"
   folder_structure:
     by_report: true      # Create subfolder per report type
