@@ -31,17 +31,11 @@ check_vpn_and_auth() {
     fi
 }
 
-# Check VPN and auth status
+# Check VPN and auth status (simplified - just check if VPN down)
 check_vpn_and_auth
 AUTH_STATUS=$?
 
-if [ $AUTH_STATUS -eq 3 ]; then
-    # VPN connected but might need auth
-    echo -e "${YELLOW}⚠️  Network connected but may need authentication${NC}"
-    echo -e "${BLUE}This usually resolves itself. Proceeding...${NC}"
-    echo ""
-
-elif [ $AUTH_STATUS -eq 1 ]; then
+if [ $AUTH_STATUS -eq 1 ]; then
     # VPN not connected
     echo -e "${YELLOW}⚠️  VPN not connected${NC}"
     echo -e "${BLUE}Opening GlobalProtect...${NC}"

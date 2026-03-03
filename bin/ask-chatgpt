@@ -43,40 +43,11 @@ check_vpn_and_auth() {
     fi
 }
 
-# Check VPN and auth status
+# Check VPN and auth status (simplified - just check if VPN down)
 check_vpn_and_auth
 AUTH_STATUS=$?
 
-if [ $AUTH_STATUS -eq 3 ]; then
-    # VPN connected but auth failed (SSO expired)
-    echo -e "${YELLOW}⚠️  API authentication expired${NC}"
-    echo -e "${BLUE}Opening browser for SSO login...${NC}"
-    echo ""
-
-    # Open the SSO login page
-    open "https://ai-gateway.zende.sk/v1/models"
-
-    echo -e "${YELLOW}Please complete SSO authentication in your browser${NC}"
-    echo -e "${BLUE}After logging in, press Enter to continue...${NC}"
-    read -r
-
-    # Verify auth is working
-    check_vpn_and_auth
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Still not authenticated${NC}"
-        echo ""
-        echo "Troubleshooting:"
-        echo "  1. Check your API key in .env file"
-        echo "  2. Try regenerating your API key"
-        echo "  3. Contact IT if issue persists"
-        echo ""
-        exit 1
-    fi
-
-    echo -e "${GREEN}✅ Authentication successful!${NC}"
-    echo ""
-
-elif [ $AUTH_STATUS -eq 1 ]; then
+if [ $AUTH_STATUS -eq 1 ]; then
     # VPN not connected
     echo -e "${YELLOW}⚠️  VPN not connected${NC}"
     echo -e "${BLUE}Opening GlobalProtect...${NC}"
