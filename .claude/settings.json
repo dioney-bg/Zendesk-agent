@@ -13,7 +13,10 @@
       "Bash(tail:*)",
       "Bash(grep:*)",
       "Bash(find:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Read(/tmp/*)",
+      "Write(/tmp/*)",
+      "Bash(*:/tmp/*)"
     ]
   }
 }
