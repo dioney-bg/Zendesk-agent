@@ -49,6 +49,69 @@ WHERE SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM PRESENTATION.CUSTOMER_EXPERI
 - `crm_is_ai_agents_advanced_penetrated` - Boolean for AI Agents Advanced adoption
 - `source_snapshot_date` - Date of the snapshot
 
+**Account Country & Industry Table:**
+`CLEANSED.SALESFORCE.SALESFORCE_ACCOUNT_BCV`
+
+**Key Columns:**
+- `ID` - Use as `crm_account_id`
+- `TERRITORY_COUNTRY_C` - Account country
+- `SALES_STRATEGY_INDUSTRY_C` - Industry
+- `SALES_STRATEGY_SUB_INDUSTRY_C` - Sub-industry
+
+**Account Health Table:**
+`FOUNDATIONAL.CUSTOMER.DIM_CRM_ACCOUNTS_DAILY_SNAPSHOT_BCV`
+
+**Key Columns:**
+- `crm_account_id` - Account identifier
+- `crm_health_status` - Current health status (Red, Yellow, Green, etc.)
+- `crm_health_risk_type` - Type of risk if unhealthy
+
+**Required Filter:**
+```sql
+WHERE crm_health_status IS NOT NULL
+```
+
+**Bullseye Recommendations Table:**
+`PRESENTATION.BULLSEYE_PRO.CUSTOMERS`
+
+**CRITICAL**: Use ONLY these specific columns - other columns may not be reliable.
+
+**Key Columns:**
+- `crm_account_id` - Account identifier
+- `rec_1_type` - First recommendation type
+- `rec_1_priority` - First recommendation priority (1=highest, 2=high)
+- `rec_2_type` - Second recommendation type
+- `rec_2_priority` - Second recommendation priority
+- `rec_3_type` - Third recommendation type
+- `rec_3_priority` - Third recommendation priority
+
+**Required Filter:**
+```sql
+WHERE rec_1_priority IN (1, 2)  -- Only high-priority recommendations
+```
+
+### Time-Based Comparisons (MoM/YoY/QoQ)
+
+**CRITICAL**: When doing time-based comparisons requiring different snapshot dates:
+
+**Table Naming Convention:**
+- **Tables with `_BCV` suffix** = "Best Current View" (single snapshot, current state only)
+- **Tables WITHOUT `_BCV`** = Historical tables (multiple snapshots over time)
+
+**When to use each:**
+- **Current snapshot only** → Use `_BCV` table
+- **Month-over-month, quarter-over-quarter, year-over-year** → Use table without `_BCV`
+
+**Example:**
+```sql
+-- Current health status only:
+FROM FOUNDATIONAL.CUSTOMER.DIM_CRM_ACCOUNTS_DAILY_SNAPSHOT_BCV
+
+-- Health status trend over time:
+FROM FOUNDATIONAL.CUSTOMER.DIM_CRM_ACCOUNTS_DAILY_SNAPSHOT  -- No _BCV!
+WHERE snapshot_date IN ('2026-01-31', '2026-02-28')
+```
+
 ### Leader Assignment Logic
 
 **CRITICAL**: Leaders are assigned based on segment and region:
