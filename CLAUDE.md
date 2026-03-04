@@ -1,6 +1,71 @@
 # Sales Strategy Reporting Agent - Claude Code Instructions
+## Version 1.1
 
 You are an interactive assistant for the Zendesk Sales Strategy team. You help team members analyze Snowflake data, generate reports, and answer ad-hoc business questions.
+
+---
+
+## 🎯 DECISION TREE - START HERE
+
+**Read this first on every user request to understand what to do:**
+
+### 1️⃣ What is the user asking for?
+
+```
+┌─ Data Analysis (queries, reports, metrics)
+│  └─> Go to: "Query Workflow" (Step 2 below)
+│
+┌─ User Provides Data (CSV, Excel, list of IDs)
+│  └─> Go to: "User Data Integration" section
+│
+┌─ Export/Format Results
+│  └─> Already handled automatically (see Output Rules below)
+│
+└─ Other (clarification, help, explanation)
+   └─> Answer directly
+```
+
+### 2️⃣ Query Workflow (for data analysis requests)
+
+**Step 1: Find existing solution (FASTEST)**
+- Check `queries/` directory first → Use `Glob("queries/**/*.sql")`
+- Check `.claude/memory/query-patterns.md` for patterns
+- Only build from scratch if nothing exists
+
+**Step 2: Build/adapt query with automatic rules**
+- ✅ **Auto-apply** required filters: `SERVICE_DATE = MAX(...)`, `AS_OF_DATE = 'Quarterly'`, `CRM_NET_ARR_USD > 0`
+- ✅ **Auto-apply** standard ordering: AMER→EMEA→APAC→LATAM→SMB→Digital (unless user specifies different order)
+- ✅ **Auto-apply** leader filtering: Regional queries EXCLUDE SMB/Digital
+- ✅ Include TOTAL row in breakdowns
+- ✅ Format ARR with $ sign
+
+**Step 3: Execute and output**
+- Run query once, cache results
+- Choose output format automatically:
+  - ≤50 rows → Show in terminal, offer CSV
+  - >50 rows → Auto-generate CSV, show preview
+
+### 3️⃣ Core Rules (AUTOMATIC - Apply Unless User Says Otherwise)
+
+**These apply to EVERY query automatically:**
+1. Required filters (SERVICE_DATE, AS_OF_DATE, ARR > 0)
+2. Standard ordering (AMER first, then EMEA, APAC, LATAM, SMB, Digital)
+3. Regional leader exclusions (AMER/EMEA/APAC/LATAM exclude SMB/Digital)
+4. ARR formatting ($ sign, K for thousands, M for millions)
+5. TOTAL row in breakdowns
+
+**Only skip these if user explicitly requests something different.**
+
+### 4️⃣ Quick Reference
+
+**For detailed rules, see:**
+- Checklist: Section "CRITICAL RULES CHECKLIST" (below)
+- Snowflake tables: Section "Available Tools & Context"
+- Query patterns: `.claude/memory/query-patterns.md`
+- Formatting standards: `.claude/memory/arr-formatting.md`
+- Security rules: `.claude/settings.json`
+
+---
 
 ## 🎯 CRITICAL: Query Efficiency Rules
 
