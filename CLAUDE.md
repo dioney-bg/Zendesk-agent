@@ -110,6 +110,48 @@ WHERE crm_health_status IS NOT NULL
 WHERE rec_1_priority IN (1, 2)  -- Only high-priority recommendations
 ```
 
+**Pipeline & Bookings Table:**
+`functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings`
+
+**CRITICAL**: Use this table for opportunity-level analysis (pipeline, bookings, competitive deals).
+
+**Key Columns:**
+- `CRM_OPPORTUNITY_ID` - Unique opportunity identifier
+- `CRM_ACCOUNT_NAME` - Customer name
+- `OPP_NAME` - Opportunity name
+- `OPPORTUNITY_STATUS` - 'Open' (pipeline) or 'Closed' (bookings)
+- `OPPORTUNITY_TYPE` - **'New Business' or 'Expansion'** (use for New vs Expansion breakdowns)
+- `CLOSEDATE` - Opportunity close date
+- `PRO_FORMA_MARKET_SEGMENT` - Customer segment
+- `REGION` - Geographic region
+- `PRODUCT` - Product name ('Ultimate', 'Ultimate_AR', 'Copilot', etc.)
+- `PRODUCT_ARR_USD` - Pipeline ARR (for open opportunities)
+- `PRODUCT_BOOKING_ARR_USD` - Booking ARR (for closed opportunities)
+- `DATE_LABEL` - Use 'today' for current snapshot
+
+**New Business vs Expansion Analysis:**
+
+When users ask to break down by "New Business" or "Expansion", use the `OPPORTUNITY_TYPE` field:
+
+```sql
+-- Example: AI Agent wins by opportunity type
+SELECT
+    OPPORTUNITY_TYPE,
+    COUNT(DISTINCT CRM_OPPORTUNITY_ID) as deal_count,
+    SUM(PRODUCT_BOOKING_ARR_USD) as total_arr
+FROM functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings
+WHERE OPPORTUNITY_STATUS = 'Closed'
+  AND PRODUCT IN ('Ultimate', 'Ultimate_AR')
+  AND DATE_LABEL = 'today'
+GROUP BY OPPORTUNITY_TYPE
+```
+
+**Common Use Cases:**
+- "Show me New Business wins vs Expansion wins"
+- "Break down pipeline by New Business and Expansion"
+- "What's the New Business ARR this quarter?"
+- "Compare New Business vs Expansion for AMER"
+
 ### Time-Based Comparisons (MoM/YoY/QoQ)
 
 **CRITICAL**: When doing time-based comparisons requiring different snapshot dates:
@@ -600,6 +642,35 @@ Users memorize commands → Users run `make` commands → Users see results
 
 **CRITICAL DIFFERENCE**: Wins vs Pipeline use different tables and fields!
 
+### Opportunity Type Analysis Patterns
+
+**Pattern: New Business vs Expansion Breakdown**
+- User asks: "Show me New Business wins" or "Break down pipeline by opportunity type"
+- Technical details:
+  - Uses: `gtmsi_consolidated_pipeline_bookings` table
+  - Field: `OPPORTUNITY_TYPE` ('New Business' or 'Expansion')
+  - ARR: PRODUCT_BOOKING_ARR_USD (closed) or PRODUCT_ARR_USD (open)
+  - Common groupings: by leader, segment, product, competitor
+- Adaptable: status (Open/Closed), time period, additional dimensions
+- Common questions:
+  - "What % of AI Agent wins are New Business?"
+  - "Compare New Business vs Expansion for AMER"
+  - "Break down bot competitor wins by opportunity type"
+
+**Example Pattern:**
+```sql
+SELECT
+    OPPORTUNITY_TYPE,
+    COUNT(DISTINCT CRM_OPPORTUNITY_ID) as deals,
+    SUM(PRODUCT_BOOKING_ARR_USD) as total_arr
+FROM functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings
+WHERE OPPORTUNITY_STATUS = 'Closed'
+  AND DATE_LABEL = 'today'
+  AND PRODUCT IN ('Ultimate', 'Ultimate_AR')
+GROUP BY OPPORTUNITY_TYPE
+ORDER BY OPPORTUNITY_TYPE DESC  -- New Business first
+```
+
 ### AI Penetration Patterns
 
 **Pattern: AI Penetration by Dimension**
@@ -719,6 +790,12 @@ I can help you analyze data in natural language - just ask your question and I'l
    • "Open opportunities against bot competitors"
    • "Closed deals competing with bots since 2025"
 
+💼 **Opportunity Type Analysis**
+   • "Show me New Business wins vs Expansion wins"
+   • "Break down pipeline by opportunity type"
+   • "What's the New Business ARR this quarter?"
+   • "Compare New Business vs Expansion for AMER"
+
 📊 **Trends & Comparisons**
    • "Year over year growth by leader"
    • "Quarter over quarter changes"
@@ -730,6 +807,7 @@ Just ask your question - I'll adapt the right query pattern and show you the res
 - "Show me top 5 countries by ARR growth"
 - "What's AMER Strategic segment AI penetration?"
 - "Which industries are growing in EMEA?"
+- "Break down AI Agent wins by New Business vs Expansion"
 - "Compare this quarter to last quarter for APAC"
 - "Open pipeline vs bot competitors"
 ```
