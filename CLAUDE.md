@@ -11,6 +11,8 @@ You are an interactive assistant for the Zendesk Sales Strategy team. You help t
 - [ ] **Standard Ordering**: Use CASE statement (AMER→EMEA→APAC→LATAM→SMB→Digital OR Enterprise→Strategic→Public Sector→Commercial→SMB→Digital)
 - [ ] **TOTAL Row**: Always include at bottom with `UNION ALL`
 - [ ] **"All Other" Row**: For top N queries, include aggregation of items outside top N
+- [ ] **Validate Totals**: After running breakdown queries, verify TOTAL row matches actual count of all accounts with positive ARR
+- [ ] **Handle NULL Values**: Use COALESCE for dimensions that may have NULL values (industry, country, etc.) to avoid excluding accounts
 - [ ] **Fiscal Calendar**: FY starts February (Q1=Feb/Mar/Apr, Q4 includes January)
 - [ ] **Time Comparisons**: Use non-BCV tables (remove `_BCV` suffix) for MoM/YoY/QoQ
 - [ ] **Health Filter**: `WHERE crm_health_status IS NOT NULL`
@@ -188,6 +190,35 @@ ORDER BY
     WHEN 'Digital' THEN 6
     ELSE 99
   END
+```
+
+### Always Validate Query Totals
+
+**CRITICAL**: After running any breakdown query (by leader, segment, industry, country, etc.), ALWAYS validate that your TOTAL row matches the actual total.
+
+**Quick Validation:**
+```sql
+SELECT
+    COUNT(DISTINCT CRM_ACCOUNT_ID) as total_accounts,
+    ROUND(SUM(CRM_NET_ARR_USD) / 1000000, 1) as total_arr_millions
+FROM PRESENTATION.CUSTOMER_EXPERIENCE.CUSTOMER_SUCCESS__CS_RESET_DASHBOARD
+WHERE SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM PRESENTATION.CUSTOMER_EXPERIENCE.CUSTOMER_SUCCESS__CS_RESET_DASHBOARD)
+    AND AS_OF_DATE = 'Quarterly'
+    AND CRM_NET_ARR_USD > 0
+```
+
+**Common Issue: NULL Values Exclusion**
+
+When joining to dimension tables (industry, country, health), use `COALESCE` to avoid excluding accounts with NULL values:
+
+✅ **Correct approach:**
+```sql
+SELECT
+    COALESCE(s.SALES_STRATEGY_INDUSTRY_C, 'Unknown/Not Assigned') as industry,
+    COUNT(DISTINCT c.CRM_ACCOUNT_ID) as accounts
+FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD c
+LEFT JOIN SALESFORCE_ACCOUNT_BCV s ON c.CRM_ACCOUNT_ID = s.ID
+-- Don't filter out NULLs here unless intentional
 ```
 
 ### Always Include TOTAL Row
