@@ -1,10 +1,11 @@
 # Sales Strategy Reporting Agent - Configuration
 
 # Snowflake Connection
+# Note: This is a template. Run 'make setup' to configure with your credentials.
 snowflake:
   connection_name: zendesk
   account: ZENDESK-GLOBAL
-  user: dioney.blanco@zendesk.com
+  user: YOUR_EMAIL@zendesk.com  # Will be set during setup
   warehouse: COEFFICIENT_WH
   default_database: PRESENTATION
   default_schema: CUSTOMER_EXPERIENCE
