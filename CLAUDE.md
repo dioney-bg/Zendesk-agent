@@ -844,8 +844,41 @@ When users need custom analysis:
 - ✅ Each team member has their own Snowflake authentication (SSO)
 - ✅ No credentials are shared or stored in the repository
 - ✅ All queries run with the user's own permissions
+- ✅ Security settings auto-update when you run `strategy-agent`
 - ❌ Never ask for credentials or tokens
 - ❌ Never commit personal data or credentials
+
+## 🔄 Auto-Update Feature
+
+The `strategy-agent` command **automatically checks for updates** every time you launch it:
+
+**What it does:**
+1. Fetches latest changes from GitHub (silently)
+2. If updates available → automatically pulls latest version
+3. Updates security settings (`.claude/settings.json`)
+4. Reinstalls global command if script was updated
+5. No manual intervention needed!
+
+**Benefits:**
+- ✅ Always using latest security settings
+- ✅ Get new query patterns and improvements automatically
+- ✅ No need to manually run `git pull` or reinstall
+- ✅ Team stays in sync with latest features
+
+**What you'll see:**
+```
+📥 Updates available - pulling latest changes...
+✅ Updated to latest version
+✅ Global command updated
+```
+
+**If you have local changes:**
+```
+⚠️  Updates available but you have local changes
+   Run 'git stash && git pull && git stash pop' to update
+```
+
+**Note:** Updates only happen if your working directory is clean (no uncommitted changes). This protects your local modifications.
 
 ## Getting Help
 

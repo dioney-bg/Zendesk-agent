@@ -50,6 +50,37 @@ if [ ! -f "$PROJECT_DIR/CLAUDE.md" ]; then
     exit 1
 fi
 
+# Auto-update check (fetch latest security settings and improvements)
+cd "$PROJECT_DIR"
+if [ -d ".git" ]; then
+    # Quietly fetch latest changes
+    git fetch origin main --quiet 2>/dev/null || true
+
+    # Check if we're behind origin/main
+    LOCAL=$(git rev-parse HEAD 2>/dev/null)
+    REMOTE=$(git rev-parse origin/main 2>/dev/null)
+
+    if [ "$LOCAL" != "$REMOTE" ] && [ ! -z "$REMOTE" ]; then
+        # Check if working directory is clean
+        if [ -z "$(git status --porcelain)" ]; then
+            echo -e "${YELLOW}📥 Updates available - pulling latest changes...${NC}"
+            git pull origin main --quiet
+            echo -e "${GREEN}✅ Updated to latest version${NC}"
+
+            # Reinstall global command if needed (in case script was updated)
+            if [ -f "$PROJECT_DIR/bin/install_strategy_agent" ]; then
+                "$PROJECT_DIR/bin/install_strategy_agent" > /dev/null 2>&1
+                echo -e "${GREEN}✅ Global command updated${NC}"
+            fi
+            echo ""
+        else
+            echo -e "${YELLOW}⚠️  Updates available but you have local changes${NC}"
+            echo -e "${YELLOW}   Run 'git stash && git pull && git stash pop' to update${NC}"
+            echo ""
+        fi
+    fi
+fi
+
 # Check if Snowflake CLI is available (check common paths)
 SNOW_FOUND=false
 COMMON_PATHS=(
