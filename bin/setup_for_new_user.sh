@@ -51,27 +51,87 @@ echo "Step 1: Checking Prerequisites"
 echo "════════════════════════════════════════════════════════════════"
 echo ""
 
-# Check Python (require 3.11+)
+# Check Python (MUST match exact version for consistency)
+REQUIRED_PYTHON_VERSION="3.13.5"
 print_status "Checking Python installation..."
+echo ""
+print_status "⚠️  REQUIRED: Python ${REQUIRED_PYTHON_VERSION} (exact match)"
+echo ""
+
 PYTHON_CMD=""
-for cmd in python3.13 python3.12 python3.11 python3; do
-    if command -v $cmd &> /dev/null; then
-        VERSION=$($cmd --version 2>&1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
-        MAJOR=$(echo $VERSION | cut -d. -f1)
-        MINOR=$(echo $VERSION | cut -d. -f2)
-        if [ "$MAJOR" -ge 3 ] && [ "$MINOR" -ge 11 ]; then
-            PYTHON_CMD=$cmd
-            print_success "Python found: $($cmd --version)"
-            break
+
+# First, try pyenv if available (best option for version management)
+if command -v pyenv &> /dev/null; then
+    print_status "Found pyenv - checking for Python ${REQUIRED_PYTHON_VERSION}..."
+
+    if pyenv versions --bare | grep -q "^${REQUIRED_PYTHON_VERSION}$"; then
+        print_success "Python ${REQUIRED_PYTHON_VERSION} already installed via pyenv"
+        PYTHON_CMD="$HOME/.pyenv/versions/${REQUIRED_PYTHON_VERSION}/bin/python"
+    else
+        print_warning "Python ${REQUIRED_PYTHON_VERSION} not found in pyenv"
+        read -p "Install Python ${REQUIRED_PYTHON_VERSION} via pyenv now? (y/n): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            print_status "Installing Python ${REQUIRED_PYTHON_VERSION} (this may take a few minutes)..."
+            pyenv install ${REQUIRED_PYTHON_VERSION}
+            PYTHON_CMD="$HOME/.pyenv/versions/${REQUIRED_PYTHON_VERSION}/bin/python"
+            print_success "Python ${REQUIRED_PYTHON_VERSION} installed!"
         fi
     fi
-done
+fi
 
+# If pyenv didn't work, check system Python installations
 if [ -z "$PYTHON_CMD" ]; then
-    print_error "Python 3.11 or higher required. Please install:"
-    echo "  brew install python@3.11"
+    print_status "Checking system Python installations..."
+
+    # Check common Python command patterns
+    for cmd in python${REQUIRED_PYTHON_VERSION} python3.13 python3; do
+        if command -v $cmd &> /dev/null; then
+            ACTUAL_VERSION=$($cmd --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+            if [ "$ACTUAL_VERSION" = "$REQUIRED_PYTHON_VERSION" ]; then
+                PYTHON_CMD=$cmd
+                print_success "Found matching Python: $cmd ($ACTUAL_VERSION)"
+                break
+            fi
+        fi
+    done
+fi
+
+# If still not found, provide installation instructions
+if [ -z "$PYTHON_CMD" ]; then
+    print_error "Python ${REQUIRED_PYTHON_VERSION} is required for team consistency!"
+    echo ""
+    echo "═══════════════════════════════════════════════════════════════"
+    echo "📥 Installation Options:"
+    echo "═══════════════════════════════════════════════════════════════"
+    echo ""
+    echo "Option 1 (Recommended): Install via pyenv"
+    echo "  1. Install pyenv:"
+    echo "     brew install pyenv"
+    echo "     echo 'export PYENV_ROOT=\"\$HOME/.pyenv\"' >> ~/.zshrc"
+    echo "     echo 'export PATH=\"\$PYENV_ROOT/bin:\$PATH\"' >> ~/.zshrc"
+    echo "     echo 'eval \"\$(pyenv init -)\"' >> ~/.zshrc"
+    echo "     source ~/.zshrc"
+    echo ""
+    echo "  2. Install Python ${REQUIRED_PYTHON_VERSION}:"
+    echo "     pyenv install ${REQUIRED_PYTHON_VERSION}"
+    echo ""
+    echo "  3. Run setup again:"
+    echo "     make setup"
+    echo ""
+    echo "Option 2: Install via Homebrew"
+    echo "  brew install python@3.13"
+    echo "  (Note: May not be exact ${REQUIRED_PYTHON_VERSION})"
+    echo ""
+    echo "Option 3: Download from python.org"
+    echo "  Visit: https://www.python.org/downloads/release/python-${REQUIRED_PYTHON_VERSION//.}"
+    echo ""
+    echo "═══════════════════════════════════════════════════════════════"
     exit 1
 fi
+
+print_success "✓ Using Python ${REQUIRED_PYTHON_VERSION}"
+echo "  Command: $PYTHON_CMD"
 
 # Check Git
 print_status "Checking Git installation..."

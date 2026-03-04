@@ -1,3 +1,7 @@
+# Sales Strategy Reporting Agent - Python Dependencies
+# Python Version: 3.13.5 (REQUIRED - see .python-version)
+# Install: pip install -r requirements.txt
+
 # Google Drive & Sheets Integration
 google-auth==2.28.0
 google-auth-oauthlib==1.2.0
