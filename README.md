@@ -33,10 +33,13 @@ make ai-report
 
 ## ⚡ Quick Commands
 
-### Interactive Agent (Recommended)
+### Interactive Tools (Recommended)
 ```bash
 strategy-agent   # 🤖 Launch interactive AI assistant
                  # Ask questions, run queries, analyze data
+
+ask-chatgpt      # 💬 Chat with ChatGPT in terminal
+                 # Quick Q&A, general assistance
 ```
 
 ### Pre-built Reports & Queries

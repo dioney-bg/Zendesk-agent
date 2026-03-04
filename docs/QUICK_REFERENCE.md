@@ -32,6 +32,25 @@ brew install anthropics/claude/claude-code
 
 ---
 
+## 💬 ChatGPT Terminal (Optional)
+
+Quick access to ChatGPT for general questions and assistance:
+
+```bash
+# Start ChatGPT chat
+ask-chatgpt
+```
+
+**Use cases:**
+- Quick Q&A without launching full agent
+- General coding questions
+- Troubleshooting assistance
+- Brainstorming ideas
+
+**Setup:** Requires `ZENDESK_AI_GATEWAY_KEY` in `.env` file
+
+---
+
 ## Daily Workflow (Pre-built Reports)
 
 ### 1. Generate Report (All Formats)
