@@ -100,6 +100,7 @@ echo ""
 # Navigate to project directory and start Claude Code
 cd "$PROJECT_DIR"
 
-# Start Claude Code
+# Start Claude Code with bypass permissions mode
+# This respects .claude/settings.json allow rules without prompting
 # The CLAUDE.md file will be automatically loaded by Claude Code
-exec claude
+exec claude --permission-mode bypassPermissions
