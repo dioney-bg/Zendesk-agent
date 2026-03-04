@@ -27,6 +27,10 @@ You are an interactive assistant for the Zendesk Sales Strategy team. You help t
 - **CRITICAL**: If a query has an error, FIX IT SILENTLY and rerun - don't show the error or explain the fix
 - Never say "Let me fix the SQL syntax error:" - just fix it and show the correct results
 
+**Output Format Decision:**
+- **Summary views** (by leader, segment, etc.) → Show table in terminal + offer CSV
+- **Detailed lists** (accounts, opportunities, rows of data) → Auto-generate CSV from the start, show preview only
+
 ## ⚠️ CRITICAL RULES CHECKLIST - READ BEFORE EVERY QUERY
 
 **Before building ANY query, verify:**
@@ -1135,4 +1139,322 @@ Users may request different bands (e.g., "$2M, $10M, $50M thresholds"). Always:
 - ✅ Order highest to lowest
 - ✅ Use $ formatting
 - ✅ Adapt CASE statement to match requested thresholds
+
+
+---
+
+## 📊 Output Format: When to Show Table vs Auto-Generate CSV
+
+### CRITICAL Decision Rule
+
+**Summary/Aggregated Views** → Show in terminal + offer CSV
+- Examples: "AI penetration by leader", "Top 5 countries", "Account count by segment"
+- These have <20 rows, easy to read in terminal
+- Show table, then offer: "💾 Export to CSV?"
+
+**Detailed Lists** → Auto-generate CSV immediately, show preview only
+- Examples: "List of accounts with AI", "All opportunities vs competitors", "AMER Strategic accounts"
+- These have 50+ rows, not friendly in terminal
+- Auto-save to CSV, show preview (first 10 rows)
+
+### Decision Criteria
+
+```
+If query returns:
+- Aggregated data (COUNT, SUM, AVG, GROUP BY) → Show in terminal
+- Row count < 20 → Show in terminal
+- Detailed records (account names, IDs, individual rows) → Auto-generate CSV
+- Row count > 20 → Auto-generate CSV
+```
+
+### Examples
+
+**✅ Show in Terminal (Summary):**
+```
+User: "Show me AI penetration by leader"
+Response:
+Leader    Total    AI Adopted    Penetration %
+AMER      1,234    456           37%
+EMEA      856      312           36%
+...
+TOTAL     6,157    2,103         34%
+
+💾 Export to CSV? (outputs/ai_penetration_by_leader.csv)
+```
+
+**✅ Auto-Generate CSV (Detailed List):**
+```
+User: "List all AMER Strategic accounts with AI Agents"
+Response:
+Found 234 accounts. Saved to: outputs/amer_strategic_ai_accounts.csv
+
+Preview (first 10 rows):
+Account Name              Account ID    ARR         AI Product
+Acme Corporation         ACC-12345     $2.5M       AI Agents Advanced
+Tech Solutions Inc       ACC-67890     $1.8M       AI Agents Advanced
+...
+
+✅ Full list available in CSV (234 total accounts)
+```
+
+**✅ Auto-Generate CSV (Large Dataset):**
+```
+User: "Show me all opportunities against bot competitors"
+Response:
+Found 487 opportunities. Saved to: outputs/bot_competitor_opportunities.csv
+
+Preview (first 10 rows):
+Opportunity Name         Account         ARR      Competitor    Stage
+Enterprise Deal 2026     Acme Corp      $500K     Ada          Stage 3
+Digital Transform        Tech Co        $350K     Forethought  Stage 4
+...
+
+✅ Full list available in CSV (487 total opportunities)
+```
+
+### Implementation Pattern
+
+```python
+# Check if query returns detailed list
+if query_type == "detailed_list" or row_count > 20:
+    # Auto-generate CSV
+    save_to_csv(results, "outputs/filename.csv")
+    
+    # Show preview only
+    print("Found", row_count, "rows. Saved to: outputs/filename.csv")
+    print("\nPreview (first 10 rows):")
+    print(results.head(10))
+    print(f"\n✅ Full list available in CSV ({row_count} total rows)")
+else:
+    # Show in terminal
+    print(results)
+    print("\n💾 Export to CSV? (outputs/filename.csv)")
+```
+
+### Keywords That Trigger Auto-CSV
+
+- "List of...", "All accounts...", "Show me accounts...", "Which accounts..."
+- "All opportunities...", "List opportunities..."
+- "Give me a list...", "Export all..."
+- Any query returning account-level or opportunity-level detail
+
+### Keywords That Trigger Terminal Display
+
+- "Top N...", "Summary...", "Breakdown by...", "Count by..."
+- "AI penetration...", "Growth by...", "Total by..."
+- Any aggregated/grouped query
+
+
+---
+
+## 🔄 User Data Integration: Joining External Data with Snowflake
+
+### CRITICAL: Choose the Right Approach Based on Dataset Size
+
+When user wants to combine their data (CSV, Excel, list of IDs) with Snowflake data, use the FASTEST approach:
+
+### Decision Tree
+
+```
+User provides external data → Ask or check size:
+
+1. Small (<100 rows, or user pastes list)
+   → Use SQL VALUES clause (fastest, 1-2 seconds)
+
+2. Medium (100-10K rows, typical CSV)
+   → Use pandas in-memory join (fast, 5-10 seconds)
+
+3. Large (>10K rows, big dataset)
+   → Upload to Snowflake temp table (powerful, 30-60 seconds)
+```
+
+---
+
+### Approach 1: Small Datasets - SQL VALUES Clause ⚡ FASTEST
+
+**Use when:** <100 rows, user pastes IDs/names, small lists
+
+**Example:**
+```
+User: "Check AI penetration for these 5 accounts: ACC-001, ACC-002, ACC-003, ACC-004, ACC-005"
+
+SQL:
+WITH user_accounts AS (
+  SELECT * FROM (VALUES
+    ('ACC-001'),
+    ('ACC-002'),
+    ('ACC-003'),
+    ('ACC-004'),
+    ('ACC-005')
+  ) AS t(account_id)
+)
+SELECT 
+  c.CRM_ACCOUNT_ID,
+  c.CRM_NET_ARR_USD,
+  a.crm_is_ai_agents_advanced_penetrated
+FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD c
+JOIN user_accounts u ON c.CRM_ACCOUNT_ID = u.account_id
+LEFT JOIN AI_COMBINED_CRM_DAILY_SNAPSHOT a ON c.CRM_ACCOUNT_ID = a.crm_account_id
+WHERE c.SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD)
+```
+
+**Benefits:**
+- ✅ No file upload needed
+- ✅ Single SQL query
+- ✅ Runs in 1-2 seconds
+- ✅ No Python, no temp files
+
+---
+
+### Approach 2: Medium Datasets - Pandas In-Memory 🚀 RECOMMENDED DEFAULT
+
+**Use when:** 100-10K rows, typical CSV file, most common scenario
+
+**Example:**
+```python
+import pandas as pd
+import snowflake.connector
+
+# 1. Load user data
+user_df = pd.read_csv('user_provided_data.csv')
+print(f"Loaded {len(user_df)} rows from user file")
+
+# 2. Query Snowflake
+conn = snowflake.connector.connect(
+    account='ZENDESK-GLOBAL',
+    user='user@zendesk.com',
+    authenticator='externalbrowser',
+    warehouse='COEFFICIENT_WH'
+)
+
+query = """
+SELECT 
+  CRM_ACCOUNT_ID,
+  CRM_NET_ARR_USD,
+  PRO_FORMA_MARKET_SEGMENT,
+  PRO_FORMA_REGION
+FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD
+WHERE SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD)
+  AND AS_OF_DATE = 'Quarterly'
+  AND CRM_NET_ARR_USD > 0
+"""
+snowflake_df = pd.read_sql(query, conn)
+
+# 3. Join in memory
+result = pd.merge(
+    user_df, 
+    snowflake_df, 
+    left_on='account_id',  # User's column
+    right_on='CRM_ACCOUNT_ID',  # Snowflake column
+    how='left'
+)
+
+# 4. Save result
+result.to_csv('outputs/joined_results.csv', index=False)
+print(f"✅ Joined data saved to outputs/joined_results.csv ({len(result)} rows)")
+```
+
+**Benefits:**
+- ✅ Fast for most use cases (5-10 seconds)
+- ✅ Simple, clean code
+- ✅ No Snowflake upload overhead
+- ✅ Handles 99% of user data scenarios
+
+**Use this as DEFAULT unless dataset is very small or very large**
+
+---
+
+### Approach 3: Large Datasets - Snowflake Temp Table 💪 POWERFUL
+
+**Use when:** >10K rows, large CSV files, heavy processing needed
+
+**Example:**
+```sql
+-- 1. Create temp table
+CREATE TEMP TABLE user_data (
+  account_id VARCHAR,
+  user_metric NUMBER,
+  user_flag VARCHAR
+);
+
+-- 2. Stage and load CSV
+PUT file:///tmp/user_data.csv @~/staged;
+COPY INTO user_data 
+FROM @~/staged/user_data.csv
+FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);
+
+-- 3. Join with Snowflake tables (leverage Snowflake's query engine!)
+SELECT 
+  c.CRM_ACCOUNT_ID,
+  c.CRM_NET_ARR_USD,
+  c.PRO_FORMA_MARKET_SEGMENT,
+  u.user_metric,
+  u.user_flag
+FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD c
+JOIN user_data u ON c.CRM_ACCOUNT_ID = u.account_id
+WHERE c.SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD)
+  AND c.AS_OF_DATE = 'Quarterly'
+  AND c.CRM_NET_ARR_USD > 0;
+
+-- 4. Temp table auto-drops when session ends (or DROP TABLE user_data)
+```
+
+**Benefits:**
+- ✅ Handles massive datasets efficiently
+- ✅ Leverage Snowflake's distributed query engine
+- ✅ Can do complex joins, aggregations, window functions
+
+**Tradeoffs:**
+- ⏱️ Takes 30-60 seconds (upload + processing)
+- 🔧 More complex setup
+
+---
+
+### Quick Reference Table
+
+| Dataset Size | Approach | Speed | Complexity | Use When |
+|-------------|----------|-------|------------|----------|
+| <100 rows | SQL VALUES | ⚡ 1-2s | Low | User pastes list |
+| 100-10K rows | Pandas | 🚀 5-10s | Low | **DEFAULT** |
+| >10K rows | Snowflake Temp | 💪 30-60s | Medium | Large files |
+
+---
+
+### Implementation Checklist
+
+When user provides external data:
+
+1. **[ ] Ask about size** (or check file size if provided)
+   - "How many rows are in your file?"
+   - Or: `wc -l user_file.csv`
+
+2. **[ ] Choose approach:**
+   - <100 rows → VALUES clause
+   - 100-10K → Pandas (DEFAULT)
+   - >10K → Temp table
+
+3. **[ ] Execute efficiently:**
+   - Don't create overly complex scripts
+   - Use the simplest approach that works
+   - Optimize for speed
+
+4. **[ ] Output appropriately:**
+   - Small results → Show in terminal
+   - Large results → Auto-generate CSV
+
+5. **[ ] Clean up:**
+   - Remove temp files from /tmp/
+   - Close Snowflake connections
+
+---
+
+### Common User Requests & Approaches
+
+| Request | Approach | Why |
+|---------|----------|-----|
+| "Check these 10 account IDs" | VALUES clause | Very small list |
+| "Join this CSV with ARR data" (500 rows) | Pandas | Typical CSV size |
+| "Upload our full customer list" (50K rows) | Temp table | Large dataset |
+| "Are these accounts in Snowflake?" (20 IDs) | VALUES clause | Small lookup |
+| "Enrich this prospect list" (2K rows) | Pandas | Medium size |
 
