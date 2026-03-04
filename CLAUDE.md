@@ -248,6 +248,24 @@ This applies today's country/industry assignment to historical data, since there
 - If `PRO_FORMA_MARKET_SEGMENT` is **SMB** or **Digital** → Leader = segment name
 - Otherwise → Leader = `PRO_FORMA_REGION` (AMER, EMEA, APAC, LATAM)
 
+**FILTERING BY LEADER - IMPORTANT:**
+
+When user asks for **AMER, EMEA, APAC, or LATAM** (regions):
+- ✅ **EXCLUDE SMB and Digital segments** (they are separate leaders)
+- ✅ Filter: `PRO_FORMA_REGION = 'AMER' AND PRO_FORMA_MARKET_SEGMENT NOT IN ('SMB', 'Digital')`
+
+When user asks for **SMB or Digital**:
+- ✅ Filter: `PRO_FORMA_MARKET_SEGMENT = 'SMB'` (or 'Digital')
+- ✅ Region doesn't matter for these leaders
+
+When user asks for **"all accounts"** or **"overall"**:
+- ✅ Include all leaders (AMER, EMEA, APAC, LATAM, SMB, Digital)
+
+**SPECIAL CASE - Region Breakdown:**
+If user asks: "Show me SMB accounts by region" or "Digital leader broken down by region":
+- ✅ Filter by segment: `PRO_FORMA_MARKET_SEGMENT = 'SMB'`
+- ✅ Group by: `PRO_FORMA_REGION`
+
 ```sql
 -- Leader assignment pattern:
 CASE
@@ -255,6 +273,22 @@ CASE
     THEN PRO_FORMA_MARKET_SEGMENT
   ELSE COALESCE(PRO_FORMA_REGION, 'Unknown')
 END AS leader
+
+-- Filtering for AMER (exclude SMB/Digital):
+WHERE PRO_FORMA_REGION = 'AMER'
+  AND PRO_FORMA_MARKET_SEGMENT NOT IN ('SMB', 'Digital')
+
+-- Filtering for SMB:
+WHERE PRO_FORMA_MARKET_SEGMENT = 'SMB'
+
+-- Filtering for all leaders (use CASE statement):
+WHERE CRM_NET_ARR_USD > 0  -- No leader filter
+GROUP BY
+  CASE
+    WHEN PRO_FORMA_MARKET_SEGMENT IN ('SMB', 'Digital')
+      THEN PRO_FORMA_MARKET_SEGMENT
+    ELSE COALESCE(PRO_FORMA_REGION, 'Unknown')
+  END
 ```
 
 ### Standard Ordering
