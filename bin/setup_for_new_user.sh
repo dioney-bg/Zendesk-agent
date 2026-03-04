@@ -244,25 +244,41 @@ echo ""
 
 print_status "Let's set up your Snowflake connection..."
 echo ""
+echo "📋 Snowflake Account: ZENDESK-GLOBAL (configured for all team members)"
+echo "🔐 Authentication: SSO (browser-based)"
+echo ""
 
-# Get user inputs
-read -p "What is your Snowflake connection name? [default: zendesk]: " CONN_NAME
-CONN_NAME=${CONN_NAME:-zendesk}
+# Get user email
+read -p "Enter your Zendesk email (e.g., yourname@zendesk.com): " USER_EMAIL
 
-read -p "What warehouse do you have access to? [default: COEFFICIENT_WH]: " WAREHOUSE
-WAREHOUSE=${WAREHOUSE:-COEFFICIENT_WH}
+# Validate email format
+if [[ ! "$USER_EMAIL" =~ @zendesk\.com$ ]]; then
+    print_warning "Email should end with @zendesk.com"
+    read -p "Continue anyway? (y/n): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        print_error "Setup cancelled. Please run again with correct email."
+        exit 1
+    fi
+fi
+
+# Use default warehouse
+WAREHOUSE="COEFFICIENT_WH"
+echo ""
+print_success "Using warehouse: $WAREHOUSE"
 
 # Update config.yaml
 print_status "Updating configuration..."
 cat > config/config.yaml.tmp << EOF
 # Sales Strategy Reporting Agent - Configuration
-# User: $(whoami)
+# User: $USER_EMAIL
 # Setup Date: $(date)
 
 # Snowflake Connection
 snowflake:
-  connection_name: $CONN_NAME
+  connection_name: zendesk
   account: ZENDESK-GLOBAL
+  user: $USER_EMAIL
   warehouse: $WAREHOUSE
   default_database: PRESENTATION
   default_schema: CUSTOMER_EXPERIENCE
@@ -320,18 +336,84 @@ print_success "Directories created"
 
 echo ""
 echo "════════════════════════════════════════════════════════════════"
-echo "Step 7: Generating Your First Report (Optional)"
+echo "Step 7: Installing Claude Code (Required for strategy-agent)"
 echo "════════════════════════════════════════════════════════════════"
 echo ""
 
-read -p "Generate a test AI Penetration Report now? (y/n): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    print_status "Generating AI Penetration Report..."
+if command -v claude &> /dev/null; then
+    print_success "Claude Code is already installed!"
+else
+    print_warning "Claude Code is NOT installed"
     echo ""
-    python scripts/reports/ai_penetration.py
+    echo "Claude Code is required to use the 'strategy-agent' command."
     echo ""
-    print_success "Report generated! Check outputs/reports/ai_penetration/"
+    echo "📥 To install Claude Code:"
+    echo "  brew install anthropics/claude/claude-code"
+    echo ""
+    echo "Or visit: https://docs.anthropic.com/claude-code"
+    echo ""
+    read -p "Install Claude Code via Homebrew now? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        print_status "Installing Claude Code..."
+        brew tap anthropics/claude
+        brew install claude-code
+        print_success "Claude Code installed!"
+    else
+        print_warning "Skipping Claude Code installation"
+        echo "Note: You'll need to install it later to use strategy-agent"
+    fi
+fi
+
+echo ""
+echo "════════════════════════════════════════════════════════════════"
+echo "Step 8: Installing strategy-agent Command"
+echo "════════════════════════════════════════════════════════════════"
+echo ""
+
+print_status "Installing strategy-agent globally..."
+./bin/install_strategy_agent
+
+# Check if ~/.local/bin is in PATH
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    print_warning "$HOME/.local/bin is not in your PATH"
+    echo ""
+    echo "Add this to your ~/.zshrc:"
+    echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+    echo ""
+    read -p "Add to ~/.zshrc automatically? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+        print_success "Added to ~/.zshrc - restart terminal or run: source ~/.zshrc"
+    fi
+fi
+
+echo ""
+echo "════════════════════════════════════════════════════════════════"
+echo "Step 9: Testing strategy-agent (Optional)"
+echo "════════════════════════════════════════════════════════════════"
+echo ""
+
+if command -v claude &> /dev/null && command -v strategy-agent &> /dev/null; then
+    print_success "Ready to use strategy-agent!"
+    echo ""
+    read -p "Launch strategy-agent now to test? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        print_status "Launching strategy-agent..."
+        echo ""
+        strategy-agent
+    fi
+else
+    print_warning "strategy-agent not ready yet"
+    echo ""
+    if ! command -v claude &> /dev/null; then
+        echo "❌ Missing: Claude Code (install: brew install anthropics/claude/claude-code)"
+    fi
+    if ! command -v strategy-agent &> /dev/null; then
+        echo "❌ Missing: strategy-agent in PATH (restart terminal or: source ~/.zshrc)"
+    fi
 fi
 
 echo ""
@@ -339,21 +421,20 @@ echo "════════════════════════�
 echo "✅ Setup Complete!"
 echo "════════════════════════════════════════════════════════════════"
 echo ""
-echo "📋 What you can do now:"
+echo "🎉 You're all set! Here's what you can do:"
 echo ""
-echo "  1. Generate reports:"
+echo "  1. 🤖 Start interactive agent (RECOMMENDED):"
+echo "     strategy-agent"
+echo ""
+echo "  2. 📊 Generate reports:"
 echo "     source venv/bin/activate"
-echo "     python scripts/reports/ai_penetration.py"
+echo "     make ai-report"
 echo ""
-echo "  2. Run interactive menu:"
-echo "     ./run_agent.sh"
-echo ""
-echo "  3. View documentation:"
-echo "     cat README.md"
+echo "  3. 📚 View documentation:"
 echo "     cat docs/QUICK_REFERENCE.md"
 echo ""
-echo "  4. Check your configuration:"
-echo "     cat config/config.yaml"
+echo "  4. ✅ Validate your setup:"
+echo "     make validate"
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
 echo "📚 Helpful Resources:"

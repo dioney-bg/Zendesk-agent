@@ -50,10 +50,25 @@ if [ ! -f "$PROJECT_DIR/CLAUDE.md" ]; then
     exit 1
 fi
 
-# Check if Snowflake CLI is available
-if [ ! -f "/Applications/SnowflakeCLI.app/Contents/MacOS/snow" ]; then
-    echo -e "${YELLOW}⚠️  Snowflake CLI not found at expected location${NC}"
-    echo "Make sure Snowflake CLI is installed and configured."
+# Check if Snowflake CLI is available (check common paths)
+SNOW_FOUND=false
+COMMON_PATHS=(
+    "/opt/homebrew/bin/snow"
+    "/usr/local/bin/snow"
+    "/Applications/SnowflakeCLI.app/Contents/MacOS/snow"
+    "$HOME/.local/bin/snow"
+)
+
+for path in "${COMMON_PATHS[@]}"; do
+    if [ -f "$path" ]; then
+        SNOW_FOUND=true
+        break
+    fi
+done
+
+if [ "$SNOW_FOUND" = false ]; then
+    echo -e "${YELLOW}⚠️  Snowflake CLI not found${NC}"
+    echo "Install: brew install snowflake-cli"
     echo ""
 fi
 
