@@ -14,9 +14,16 @@
       "Bash(grep:*)",
       "Bash(find:*)",
       "Bash(wc:*)",
+      "Bash(mkdir:*)",
       "Read(/tmp/*)",
       "Write(/tmp/*)",
-      "Bash(*:/tmp/*)"
+      "Bash(*:/tmp/*)",
+      "Read(output/*)",
+      "Read(outputs/*)",
+      "Write(output/*)",
+      "Write(outputs/*)",
+      "Bash(*:output/*)",
+      "Bash(*:outputs/*)"
     ]
   }
 }

@@ -971,6 +971,8 @@ Here are the top 5 countries by ARR growth YoY:
 Key insights:
 - Germany leads with +45% growth
 - Total growth across top 5: $12.5M
+
+💾 Export to CSV? (saved to outputs/country_growth_yoy.csv)
 ```
 
 **Example Bad Response:**
@@ -1005,6 +1007,69 @@ Query executed successfully...
 2. Rerun the corrected query
 3. Show only the working results
 4. Only mention if the error is critical and needs user input
+
+---
+
+### CSV Export - Always Offer and Be Efficient
+
+**CRITICAL: After showing any table results, ALWAYS:**
+
+1. **Offer CSV export** (don't wait for user to ask)
+2. **Cache the query results** - save them once, don't re-query
+3. **Save to outputs/ directory** with descriptive filename
+
+**Workflow:**
+```
+1. Run Snowflake query → Get results
+2. Show table in terminal
+3. IMMEDIATELY offer: "💾 Export to CSV? (outputs/filename.csv)"
+4. If user says yes → Save cached results to CSV (don't re-query!)
+```
+
+**CSV Format Rules:**
+- Save to: `outputs/` or `outputs/data/` directory
+- Filename: Descriptive, lowercase, underscores (e.g., `country_growth_yoy.csv`)
+- Create directory if needed: `mkdir -p outputs`
+- Use the ALREADY FETCHED data (don't run query again)
+
+**Example Implementation:**
+```bash
+# 1. Run query and save to variable
+RESULTS=$(/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "SELECT...")
+
+# 2. Show results
+echo "$RESULTS"
+
+# 3. Offer CSV export
+echo "💾 Export to CSV?"
+
+# 4. If yes, save the SAME results (no re-query)
+mkdir -p outputs
+echo "$RESULTS" > outputs/country_growth.csv
+```
+
+**Bad Practice (DON'T DO THIS):**
+```bash
+# Show results
+snow sql -q "SELECT..." --format=table
+
+# Later, user asks for CSV
+# ❌ BAD: Re-runs the same query
+snow sql -q "SELECT..." --format=csv > file.csv
+```
+
+**Good Practice (DO THIS):**
+```bash
+# Run once, save results
+snow sql -q "SELECT..." --format=csv > /tmp/results.csv
+
+# Show as table
+cat /tmp/results.csv | column -t -s,
+
+# Offer CSV export
+# ✅ GOOD: Just copy the file
+cp /tmp/results.csv outputs/country_growth.csv
+```
 
 ---
 
