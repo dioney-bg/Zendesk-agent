@@ -11,7 +11,9 @@
  *
  * Key Fields:
  *   - OPPORTUNITY_STATUS = 'Open' (open opportunities, not closed)
- *   - PRODUCT_ARR_USD (pipeline ARR, not booking ARR)
+ *   - PRODUCT_ARR_USD > 0 (pipeline ARR, not booking ARR)
+ *   - opportunity_is_commissionable = TRUE (data quality filter)
+ *   - stage_2_plus_date_c IS NOT NULL (data quality filter)
  *   - PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot') (AI products)
  *   - MAIN_COMPETITOR or MAIN_LOST_COMPETITOR (competitor fields from COMPETITORS_T)
  *
@@ -62,6 +64,8 @@ WITH ai_pipeline AS (
   FROM functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings p
   WHERE p.OPPORTUNITY_STATUS = 'Open'
     AND p.PRODUCT_ARR_USD > 0
+    AND p.opportunity_is_commissionable = TRUE
+    AND p.stage_2_plus_date_c IS NOT NULL
     AND p.DATE_LABEL = 'today'
     AND p.PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot')
     AND p.CLOSEDATE >= '2026-02-01'  -- Adjust time period here

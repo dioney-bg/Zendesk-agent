@@ -121,6 +121,8 @@ WHERE rec_1_priority IN (1, 2)  -- Only high-priority recommendations
 - `OPP_NAME` - Opportunity name
 - `OPPORTUNITY_STATUS` - 'Open' (pipeline) or 'Closed' (bookings)
 - `OPPORTUNITY_TYPE` - **'New Business' or 'Expansion'** (use for New vs Expansion breakdowns)
+- `opportunity_is_commissionable` - Boolean (TRUE = commissionable)
+- `stage_2_plus_date_c` - Date when opportunity reached Stage 2+
 - `CLOSEDATE` - Opportunity close date
 - `PRO_FORMA_MARKET_SEGMENT` - Customer segment
 - `REGION` - Geographic region
@@ -128,6 +130,24 @@ WHERE rec_1_priority IN (1, 2)  -- Only high-priority recommendations
 - `PRODUCT_ARR_USD` - Pipeline ARR (for open opportunities)
 - `PRODUCT_BOOKING_ARR_USD` - Booking ARR (for closed opportunities)
 - `DATE_LABEL` - Use 'today' for current snapshot
+
+**Required Filters (Data Quality):**
+
+**CRITICAL**: Always apply these filters when using this table:
+
+```sql
+WHERE DATE_LABEL = 'today'
+  AND opportunity_is_commissionable = TRUE
+  AND stage_2_plus_date_c IS NOT NULL
+
+  -- For closed bookings, also add:
+  AND OPPORTUNITY_STATUS = 'Closed'
+  AND PRODUCT_BOOKING_ARR_USD > 0
+
+  -- For open pipeline, use:
+  AND OPPORTUNITY_STATUS = 'Open'
+  AND PRODUCT_ARR_USD > 0
+```
 
 **New Business vs Expansion Analysis:**
 
@@ -141,9 +161,13 @@ SELECT
     SUM(PRODUCT_BOOKING_ARR_USD) as total_arr
 FROM functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings
 WHERE OPPORTUNITY_STATUS = 'Closed'
-  AND PRODUCT IN ('Ultimate', 'Ultimate_AR')
+  AND PRODUCT_BOOKING_ARR_USD > 0
+  AND opportunity_is_commissionable = TRUE
+  AND stage_2_plus_date_c IS NOT NULL
   AND DATE_LABEL = 'today'
+  AND PRODUCT IN ('Ultimate', 'Ultimate_AR')
 GROUP BY OPPORTUNITY_TYPE
+ORDER BY OPPORTUNITY_TYPE DESC
 ```
 
 **Common Use Cases:**
@@ -665,11 +689,20 @@ SELECT
     SUM(PRODUCT_BOOKING_ARR_USD) as total_arr
 FROM functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings
 WHERE OPPORTUNITY_STATUS = 'Closed'
+  AND PRODUCT_BOOKING_ARR_USD > 0
+  AND opportunity_is_commissionable = TRUE
+  AND stage_2_plus_date_c IS NOT NULL
   AND DATE_LABEL = 'today'
   AND PRODUCT IN ('Ultimate', 'Ultimate_AR')
 GROUP BY OPPORTUNITY_TYPE
 ORDER BY OPPORTUNITY_TYPE DESC  -- New Business first
 ```
+
+**CRITICAL**: Always include these filters:
+- `PRODUCT_BOOKING_ARR_USD > 0` (for bookings) or `PRODUCT_ARR_USD > 0` (for pipeline)
+- `opportunity_is_commissionable = TRUE`
+- `stage_2_plus_date_c IS NOT NULL`
+- `DATE_LABEL = 'today'`
 
 ### AI Penetration Patterns
 
