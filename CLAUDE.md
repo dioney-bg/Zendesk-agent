@@ -477,9 +477,50 @@ The project includes these ready-to-use reports:
 
 More reports can be added following the modular architecture in `scripts/reports/`.
 
+## Query Patterns - How to Handle User Requests
+
+**IMPORTANT**: When users ask for analysis in natural language, recognize the pattern, adapt it with parameters, and run it directly. Don't make them memorize commands.
+
+### How to Process User Requests:
+
+1. **Match request to pattern type:**
+   - Geographic analysis (countries, regions)
+   - Industry analysis (by leader or overall)
+   - Segment breakdowns
+   - AI penetration by dimension
+   - Growth/trends (YoY, QoQ, MoM)
+
+2. **Extract parameters:**
+   - Dimension: country, industry, segment, leader
+   - Filter: specific leader, segment, country
+   - Metric: ARR, accounts, growth
+   - Time period: current, YoY, QoQ
+   - Top N: 5, 10, etc.
+
+3. **Use existing pattern if available:**
+   - Check if a saved query matches (see below)
+   - Adapt parameters if needed (e.g., AMER → EMEA)
+
+4. **Build and run query directly:**
+   - Don't ask user to run `make` commands
+   - Execute query with Snowflake CLI
+   - Present results in table format
+   - Validate totals
+
+### Example Interactions:
+
+**User:** "Show me EMEA industry growth"
+**Agent:** Recognizes this is "Industry Growth by Leader" pattern. Adapts AMER query with leader='EMEA'. Runs directly and shows results.
+
+**User:** "Which countries are growing fastest?"
+**Agent:** Uses "Country Growth YoY" pattern, ranks by growth %, runs and shows top 5.
+
+**User:** "Top 10 industries for APAC"
+**Agent:** Adapts "Industry Growth by Leader" pattern with leader='APAC' and top_n=10. Runs directly.
+
 ## Available Ad-hoc Queries
 
-Pre-built SQL queries available in `queries/` directory:
+**These are REFERENCE patterns** - use them as templates to adapt for user requests. Users shouldn't need to know these commands exist.
 
 ### Geographic Analysis
 
@@ -510,12 +551,30 @@ Pre-built SQL queries available in `queries/` directory:
   - Current vs prior year comparison
   - Location: `queries/industry/amer_industry_growth_yoy.sql`
 
-### Suggesting Queries
+### Pattern Adaptation Examples
 
-When users ask for analysis, check if a pre-built query exists:
-- "Show me countries by ARR" → "We have `make country-report`"
-- "Which countries are growing?" → "Try `make country-growth-report`"
-- "Top industries in AMER" → "Run `make amer-industry-growth`"
+**Don't suggest make commands** - just run the adapted query:
+
+❌ **Bad:** "We have `make amer-industry-growth`, you can run that"
+
+✅ **Good:**
+- User: "Show me EMEA industry growth"
+- Agent: [Adapts AMER pattern, runs directly, shows results]
+- Agent: "Here are the top 5 industries by YoY growth for EMEA..."
+
+**Reusable Patterns:**
+- Country analysis → Can adapt for: top N, growth metric, time period
+- Industry by leader → Can adapt for: any leader (AMER/EMEA/APAC/LATAM/SMB/Digital)
+- Segment breakdown → Can adapt for: any leader filter, any segment focus
+- AI penetration → Can adapt for: any dimension (leader/segment/country/industry)
+
+**Common Adaptations:**
+- "Top 5" → "Top 10": Change `WHERE rank <= 5` to `WHERE rank <= 10`
+- "AMER" → "EMEA": Change leader filter
+- "YoY" → "QoQ": Change DATEADD(year, -1) to DATEADD(quarter, -1)
+- "Industry" → "Country": Swap dimension in GROUP BY
+
+See `.claude/memory/query-patterns.md` for full pattern library.
 
 ---
 
