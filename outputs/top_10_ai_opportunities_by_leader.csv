@@ -1,0 +1,61 @@
+LEADER,RANK,CRM_OPPORTUNITY_ID,OPP_NAME,CRM_ACCOUNT_NAME,SEGMENT,AI_CLASSIFICATION,PIPELINE_ARR,CLOSE_DATE
+EMEA,1,006PC000005XDlsYAG,Axians I #Targeted Growth,AXIAN TELECOM MIDDLE EAST MANAGEMENT AND TECHNICAL SERVICES LTD,Commercial,AI Agents Only,$1096K,2026-03-18
+EMEA,2,006PC00000Pf0k1YAB,EXP | Kaizen | Ai CoPilot |,Kaizen Gaming International Ltd,Enterprise,Copilot Only,$692K,2026-05-26
+EMEA,3,006PC00000MYJV0YAP,EXP I Nickel I Early Renew,Financières des Paiements Electroniques (FPE),Enterprise,Both (Copilot + AI Agents),$629K,2026-04-17
+EMEA,4,006PC00000VH4TbYAL,"AE - EXP - Ticketmaster - ZfCC, AIAA & Expansion",Ticketmaster UK Limited,Enterprise,Both (Copilot + AI Agents),$593K,2026-12-14
+EMEA,5,006PC00000LQaa2YAD,Booking Transport I EXP I ARS,BOOKING.COM TRANSPORT LIMITED,Enterprise,AI Agents Only,$587K,2026-04-15
+EMEA,6,006PC00000QqzuuYAB,AE | Expansion | PENT + Copilote + MAU,OLINDA SAS,Enterprise,Copilot Only,$530K,2026-03-27
+EMEA,7,006PC00000UcM4gYAF,RyanAir | CX | Resolution Platform | AI Agents Advanced + 5 million AR's + WEM + Contact Center + Co Pilot,Ryanair,Strategic,Both (Copilot + AI Agents),$529K,2026-09-30
+EMEA,8,006PC00000LtCFoYAN,Accor Global RFP 2026 | NB | 900 agents Suite ENT Plus + ZCC + Copilot + AI agent A + ADPP + WEM + PENT,Accor SA,Enterprise,Both (Copilot + AI Agents),$506K,2026-04-15
+EMEA,9,006PC000008DjHFYA0,Kingspan || CX | 1000 + Suite Pro + Copilot,KINGSPAN LIMITED,Enterprise,Copilot Only,$505K,2026-11-27
+EMEA,10,006PC00000LLdK1YAL,"AE | EXP | Mercer | Co-Pilot, QA, ARs & HVAPI/ADPP",Mercer Limited,Enterprise,Copilot Only,$475K,2026-12-18
+APAC,1,006PC00000IzsfTYAR,Sportsbet | CX | AIAA + WEM + Co-Pilot,Sportsbet,Enterprise,Both (Copilot + AI Agents),$557K,2026-04-28
+APAC,2,006PC00000QJ5uiYAD,LFS - AAIA + Copilot,Latitude Financial Services Australia Holdings Pty Ltd (ABN 46603161100),Enterprise,Both (Copilot + AI Agents),$525K,2026-07-08
+APAC,3,006PC00000DSEF6YAP,Afterpay | EXP | COPILOT,Afterpay Australia Pty Ltd,Enterprise,Copilot Only,$516K,2026-04-23
+APAC,4,006PC00000JIsVFYA1,Woolworths Group | EXP | CX | Suite Ent (1000) #BDR,Woolworths Group (Master Account),Enterprise,Copilot Only,$300K,2026-10-08
+APAC,5,006PC00000QJjdbYAD,"National Australia Bank | NB | CX | Suite ENT, Co Pilot + ZDCC (400) #BDR",National Australia Bank (Master Account),Enterprise,Copilot Only,$240K,2026-12-23
+APAC,6,006PC00000QVkRFYA1,"McMillan Shakespeare Group | NB | CX | Suite Ent, Advanced AI, Copilot, WEM (500) #BDR",McMillan Shakespeare Group,Commercial,Both (Copilot + AI Agents),$212K,2026-06-26
+APAC,7,006PC00000Ux89zYAB,Ethan Group | NB | CX | Suite Ent + Co-Pilot + WFM (260) #BDR,Ethan Group,Commercial,Copilot Only,$156K,2027-01-01
+APAC,8,006PC00000HLGxeYAH,"Crown Resorts | NB | CX | Suite Ent, Adv AI (140) #BDR",Crown Resorts,Enterprise,Both (Copilot + AI Agents),$148K,2026-06-30
+APAC,9,006PC00000Mn4ibYAB,TAFE SA | NB | CX + ES | Suite Pro + Co-Pilot + CC + WFM + QA (220),TAFE SA,Commercial,Copilot Only,$132K,2026-12-02
+APAC,10,006PC00000Tnk5rYAB,Optage  | B2C CC | NB | Suite Ent (200) + Copilot + QA 1st phase,株式会社オプテージ,Enterprise,Copilot Only,$126K,2028-04-01
+LATAM,1,006PC00000MusyjYAB,XPI | Copilot QA WFM AI AGENT,"XPI CORRETORA DE CAMBIO, TITULOS E VALORES MOBILIARIOS S/A",Enterprise,Copilot Only,$714K,2026-04-23
+LATAM,2,006PC00000BcfrpYAB,[Partner] Copa Energia Revendas - AI Agent + Suite,Copa Energia,Enterprise,AI Agents Only,$550K,2026-03-20
+LATAM,3,006PC00000ICAxLYAX,Blaze | EXP | Ultimate [Opp 1 of 2],Prolific Trade N.V.,Commercial,AI Agents Only,$308K,2027-03-01
+LATAM,4,006PC00000VC64bYAD,Vero Internet | RFP,Vero Internet,Enterprise,Copilot Only,$208K,2026-11-26
+LATAM,5,006PC00000SNCrZYAX,[BDR OUT] Verisure Brasil | RFP | NB | BC,Verisure Brasil,Enterprise,AI Agents Only,$193K,2026-07-23
+LATAM,6,006PC00000LO6t0YAD,[Partner] Grupo Equatorial - 500 Suite Ent (NB) DO,Grupo Equatorial Energia,Enterprise,Copilot Only,$187K,2026-06-19
+LATAM,7,006PC00000R4cTlYAJ,SDR IN | AMERICANAS SA | Suite Pro (60 Agents) NB,Americanas S/A,Enterprise,Both (Copilot + AI Agents),$178K,2026-04-17
+LATAM,8,006PC00000OPRgkYAH,Movile Pay | AI | MM | EX,Movile Pay,Enterprise,AI Agents Only,$167K,2026-03-27
+LATAM,9,006PC00000V7We3YAF,SBF | AI | EX | MM,SBF Comercio De Produtos Esportivos S.A.,Enterprise,Both (Copilot + AI Agents),$152K,2026-04-04
+LATAM,10,006PC00000ECIilYAH,[PARTNER BDR] Tokio Marine - 1000 Suite Ent Plus (NB) IP,Tokio Marine Brazil,Enterprise,Both (Copilot + AI Agents),$151K,2026-06-18
+SMB,1,006PC00000L0peLYAR,Startrader International Proprietary Limited Renewal - startraderglobal - June 2027-  Auto Renewal  ON,Startrader International Proprietary Limited,SMB,Both (Copilot + AI Agents),$219K,2027-06-01
+SMB,2,006PC00000QWkDdYAL,Victory Live | Expansion Advanced AI Agents,Victory Live,SMB,AI Agents Only,$203K,2026-03-06
+SMB,3,006PC00000VDJ7rYAH,Guns.com | Advanced AI Agents,Guns.com,SMB,AI Agents Only,$200K,2026-04-24
+SMB,4,006PC00000Ul4TaYAJ,Yazam | AiA,Yazam Inc.,SMB,AI Agents Only,$175K,2026-05-15
+SMB,5,006PC00000RgLuvYAF,SDR I NB I Legora I Suite Pro + co-pilot + QA (50),Legora AB,SMB,Copilot Only,$171K,2026-03-31
+SMB,6,006PC00000M49mQYAR,Suits Me; Add AR's & ADPP | Suite Ent Plan Shift | Remove Licenses,Suits Me,SMB,AI Agents Only,$147K,2026-03-28
+SMB,7,006PC00000TCTS9YAP,Tomofun - AI Agents Advanced,Tomofun,SMB,AI Agents Only,$134K,2026-04-24
+SMB,8,006PC00000VA14GYAT,Scribd | AAIA + CoPilot,"Scribd, Inc.",SMB,Both (Copilot + AI Agents),$128K,2026-06-03
+SMB,9,006PC00000Mnvq5YAB,BDR - NB - CX -  Mister Auto,Mister Auto,SMB,Both (Copilot + AI Agents),$122K,2026-05-31
+SMB,10,006PC00000VHILFYA5,Furnished Finder | Copilot,Furnished Finder,SMB,Copilot Only,$117K,2026-04-30
+Digital,1,006PC00000QMD4TYAX,ClassWallet I Suite Ent (130),ClassWallet,Digital,Copilot Only,$70K,2026-03-31
+Digital,2,006PC00000TyNInYAN,Ex-Creditspring-Suite Pro + AI,Creditspring,Digital,AI Agents Only,$50K,2026-03-27
+Digital,3,006PC00000RfWVqYAN,Executive Option | ENT + QA+ Copilot (100),"Executive Option, LLC",Digital,Copilot Only,$48K,2026-05-31
+Digital,4,006PC00000VE18rYAD,USP Motorsports | AI Agents advanced,USP Motorsports,Digital,Both (Copilot + AI Agents),$46K,2026-04-26
+Digital,5,006PC00000VIvpBYAT,Delta (70k ARR / Actuals 14k ARR) - EXP - CleverCards| Advanced AI | Copilot (14k ARR),CleverCards,Digital,Both (Copilot + AI Agents),$45K,2026-03-25
+Digital,6,006PC00000OzR8kYAF,Cigar Chief | Suite Pro (5) + Advanced AI,Cigar Chief,Digital,AI Agents Only,$44K,2026-03-20
+Digital,7,006PC00000UhWrOYAV,SDR I NB I Klarity Gaming I Suite Pro + AI,Klarity Gaming,Digital,AI Agents Only,$37K,2026-09-30
+Digital,8,006PC00000VR447YAD,Sysmex PH | NB | CX | Suite Pro + CoPilot + WFM (15) + AIAA,Sysmex Philippines Inc.,Digital,Both (Copilot + AI Agents),$36K,2026-05-02
+Digital,9,006PC00000UshI1YAJ,SDR | EXP | Maloum | AI Agent Advanced + Copilot,Maloum,Digital,Both (Copilot + AI Agents),$32K,2026-04-18
+Digital,10,006PC00000VCzAjYAL,SDR | NB | DS | GigPig | Prof Suite (4) + AI Agent Advanced,GigPig,Digital,Copilot Only,$32K,2026-04-26
+NA,1,006PC00000SHhA6YAL,BBW | Copilot add-on,Bath & Body Works,Strategic,Copilot Only,$1050K,2026-08-21
+NA,2,006PC00000O0Jo5YAF,TrueAccord: Add CoPilot/WEM/AI Agents/850K ARs,"TrueAccord, Corp",Commercial,Both (Copilot + AI Agents),$958K,2026-09-22
+NA,3,006PC00000UYeRbYAL,Re-engage | ZimworX | Suite ENT (1500)+CP+AIAA+WEM+ARs,ZimWorX,Commercial,Copilot Only,$630K,2026-09-15
+NA,4,006PC00000Ls7bYYAR,Twilio | Copilot (Q1 Target),Twilio,Enterprise,Copilot Only,$536K,2026-04-17
+NA,5,006PC00000VD5EYYA1,Greenlight l Copilot (118),Greenlight Planet Incorporated,Commercial,Copilot Only,$335K,2026-04-03
+NA,6,006PC00000LbwNZYAZ,UMG | Early renew add CoPilot and AIAA,"Universal Music Investments, Inc.",Enterprise,Both (Copilot + AI Agents),$327K,2026-04-03
+NA,7,006PC000008DSwOYAW,Komatsu - MMSIPL | Suite Upgrade + AI (593),MMSIPL,Enterprise,Copilot Only,$320K,2026-12-18
+NA,8,006PC00000MlifFYAR,360insights | Suite Enterprise - Add Contact Center and ARs for Messaging Business,360insights,Commercial,AI Agents Only,$308K,2026-06-19
+NA,9,006PC00000HmBDuYAN,Spring Health - Contact Center RFP,Spring Health,Enterprise,Copilot Only,$270K,2026-04-16
+NA,10,006PC00000UJzUmYAL,OneSky Flight | Copilot,"OneSky Flight, LLC",Strategic,Copilot Only,$255K,2026-07-31
