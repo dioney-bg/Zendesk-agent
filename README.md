@@ -23,8 +23,8 @@ cd Zendesk-agent
 # 3. Run setup (15 minutes)
 make setup
 
-# 4. Generate your first report
-make ai-report
+# 4. Start the interactive agent
+strategy-agent
 ```
 
 **📚 Detailed guide:** [docs/setup/TEAM_SETUP.md](docs/setup/TEAM_SETUP.md)
