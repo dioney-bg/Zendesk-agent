@@ -1,10 +1,12 @@
 {
   "permissions": {
+    "defaultMode": "dontAsk",
     "allow": [
       "Bash(snow:*)",
       "Bash(/opt/homebrew/bin/snow:*)",
       "Bash(/usr/local/bin/snow:*)",
       "Bash(/Applications/SnowflakeCLI.app/Contents/MacOS/snow:*)",
+      "Bash(*snow*:*)",
       "Bash(python:*)",
       "Bash(python3:*)",
       "Bash(ls:*)",
@@ -15,14 +17,16 @@
       "Bash(find:*)",
       "Bash(wc:*)",
       "Bash(mkdir:*)",
-      "Read(/tmp/*)",
+      "Bash(rm:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(echo:*)",
+      "Bash(printf:*)",
+      "Read(*)",
       "Write(/tmp/*)",
       "Bash(*:/tmp/*)",
-      "Read(output/*)",
       "Read(outputs/*)",
-      "Write(output/*)",
       "Write(outputs/*)",
-      "Bash(*:output/*)",
       "Bash(*:outputs/*)"
     ]
   }
