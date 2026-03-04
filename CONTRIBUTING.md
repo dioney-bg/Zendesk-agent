@@ -72,6 +72,58 @@ git remote -v
 ./setup_for_new_user.sh
 ```
 
+## 📊 Requesting New Reports or Queries
+
+**Important:** Only Dioney (the repository maintainer) creates new reports and queries for the team.
+
+### Why This Approach?
+
+- ✅ Ensures quality and consistency across all reports
+- ✅ Maintains clear ownership and maintenance
+- ✅ Follows team conventions and standards
+- ✅ Centralizes documentation and discovery
+
+### How to Request a New Report
+
+1. **Contact Dioney directly:**
+   - Slack/email with your request
+   - Describe what analysis you need
+   - Explain the business value
+   - Provide any specific requirements
+
+2. **Dioney will:**
+   - Assess feasibility and priority
+   - Create the query/report in main repo
+   - Add documentation and commands
+   - Notify you when it's ready
+
+3. **You sync your fork:**
+   ```bash
+   make sync  # Get the new report
+   make country-report  # Example: use the new command
+   ```
+
+### What You CAN Create
+
+✅ **Personal queries in your fork** (not submitted back):
+```bash
+mkdir queries/my_personal_analysis
+vim queries/my_personal_analysis/custom.sql
+```
+
+✅ **Local experiments** (not submitted back):
+```bash
+# Try things locally, keep in your fork
+```
+
+### What You Should Request from Dioney
+
+❌ **New shared queries** (in `queries/` directory)
+❌ **New reports** (in `scripts/reports/`)
+❌ **New Makefile targets** for team use
+
+**Remember:** You own your fork and can do anything locally. But for SHARED queries/reports that the team will use, request from Dioney.
+
 ## 🔄 Keeping Your Fork Updated
 
 Dioney will periodically add new features and reports. Here's how to get them:
@@ -158,15 +210,23 @@ formatting:
 
 ## 🤝 Contributing Back to Main Repository
 
-Built something useful? Share it with the team!
+Found a bug or want to improve existing functionality? You can contribute!
 
-### What Makes a Good Contribution?
+### What You CAN Contribute via PR
 
-- ✅ **New reports** that others would find useful
-- ✅ **Bug fixes** in existing reports
-- ✅ **Performance improvements** to queries
-- ✅ **Documentation improvements**
-- ✅ **New features** that benefit everyone
+- ✅ **Bug fixes** in existing reports or queries
+- ✅ **Performance improvements** to existing queries
+- ✅ **Documentation improvements** (typos, clarity, examples)
+- ✅ **Infrastructure improvements** (setup scripts, tooling)
+- ✅ **Code refactoring** (better organization, cleaner code)
+
+### What You Should REQUEST Instead (Not PR)
+
+- ❌ **New reports** → Request from Dioney
+- ❌ **New queries** → Request from Dioney
+- ❌ **New analyses** → Request from Dioney
+
+**Why?** Dioney maintains ownership of all team queries/reports to ensure quality, consistency, and proper documentation.
 
 ### How to Contribute
 
@@ -177,27 +237,39 @@ Built something useful? Share it with the team!
 git checkout main
 git pull upstream main
 
-# Create a branch for your feature
-git checkout -b feature/account-health-report
-
-# Or for a bug fix
+# Create a branch for your contribution
 git checkout -b fix/ai-penetration-calculation
+# Or: git checkout -b docs/improve-setup-guide
+# Or: git checkout -b perf/optimize-country-query
 ```
 
 #### Step 2: Make Your Changes
 
+**Example: Bug Fix**
 ```bash
-# Create your new report
-vim scripts/reports/account_health.py
-
-# Add SQL query
-vim queries/account_health/main_query.sql
-
-# Add configuration
-vim config/reports/account_health.yaml
+# Fix bug in existing report
+vim scripts/reports/ai_penetration.py
 
 # Test thoroughly
-python scripts/reports/account_health.py
+python scripts/reports/ai_penetration.py
+```
+
+**Example: Documentation Improvement**
+```bash
+# Improve setup documentation
+vim docs/setup/TEAM_SETUP.md
+
+# Fix typos in README
+vim README.md
+```
+
+**Example: Performance Optimization**
+```bash
+# Optimize existing query
+vim queries/geographic/top_countries_by_arr_and_accounts.sql
+
+# Test performance improvement
+make country-report
 ```
 
 #### Step 3: Test Everything
@@ -215,24 +287,22 @@ python scripts/reports/account_health.py
 
 ```bash
 # Stage your changes
-git add scripts/reports/account_health.py
-git add queries/account_health/
-git add config/reports/account_health.yaml
+git add scripts/reports/ai_penetration.py
 
 # Commit with clear message
-git commit -m "Add account health report
+git commit -m "Fix AI penetration calculation for SMB segment
 
-- New report tracking customer health scores
-- Includes risk indicators and engagement metrics
-- Outputs: CSV, Excel, Slack
-- Query optimized for performance"
+- Corrected leader assignment logic for SMB
+- Added validation for TOTAL row
+- Updated test cases
+- Fixes #123"
 ```
 
 #### Step 5: Push to Your Fork
 
 ```bash
 # Push your branch to YOUR fork on GitHub
-git push origin feature/account-health-report
+git push origin fix/ai-penetration-calculation
 ```
 
 #### Step 6: Open a Pull Request
@@ -255,11 +325,14 @@ git push origin feature/account-health-report
 Brief description of what this PR does
 
 ## Type of Change
-- [ ] New report
 - [ ] Bug fix
 - [ ] Performance improvement
-- [ ] Documentation
+- [ ] Documentation improvement
+- [ ] Code refactoring
+- [ ] Infrastructure improvement
 - [ ] Other (describe)
+
+**Note:** New reports/queries should be requested from Dioney, not submitted via PR.
 
 ## Testing
 - [ ] Report runs successfully
@@ -366,15 +439,16 @@ git push origin main --force
 
 Then re-run setup: `./setup_for_new_user.sh`
 
-### "Can I create private custom reports?"
+### "Can I create private custom queries for my own use?"
 
 Yes! In your fork:
 ```bash
-mkdir scripts/reports/my_private_report
-# These stay in YOUR fork only
+mkdir queries/my_private_analysis
+vim queries/my_private_analysis/custom_query.sql
+# These stay in YOUR fork only, for your personal use
 ```
 
-Don't include in PRs unless you want to share.
+These are for YOUR use only. If you think the analysis would benefit the team, request Dioney to create an official shared version.
 
 ## 🎯 Summary
 

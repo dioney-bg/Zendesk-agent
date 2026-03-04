@@ -156,10 +156,25 @@ Zendesk-agent/
 
 This project uses a **fork workflow** for team collaboration:
 
-1. **You (Dioney)** maintain the main repository
+1. **Dioney** maintains the main repository
+   - Creates all queries and reports
+   - Reviews and merges contributions
+   - Ensures quality and consistency
+
 2. **Team members** fork to get personal copies
-3. **Each person** configures their own Snowflake/Google credentials
-4. **Contributions** come back via Pull Requests
+   - Configure their own Snowflake/Google credentials
+   - Run existing queries and reports
+   - Request new analyses from Dioney
+
+3. **Creating New Reports/Queries**
+   - Team members: Request from Dioney via Slack/email
+   - Dioney creates in main repo
+   - Team members sync to get updates: `make sync`
+
+4. **Other Contributions** (bug fixes, docs, improvements)
+   - Create branch in your fork
+   - Submit Pull Request to main repo
+   - Dioney reviews and merges
 
 **Learn more:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
@@ -183,20 +198,38 @@ This project uses a **fork workflow** for team collaboration:
 
 ## 🛠️ Development
 
-### Adding a New Report
+### Adding a New Report (Maintainer Only)
 
+**Note:** Only the repository maintainer (Dioney) creates new queries and reports. Team members should request new reports by contacting Dioney directly.
+
+**For Dioney:**
 ```bash
 # 1. Create SQL query
 mkdir queries/my_report
 vim queries/my_report/main.sql
 
-# 2. Create report class
+# 2. Create report class (if complex)
 vim scripts/reports/my_report.py
 
-# 3. Test
+# 3. Add Makefile command
+vim Makefile
+
+# 4. Update documentation
+vim docs/QUICK_REFERENCE.md
+vim README.md
+vim CLAUDE.md
+
+# 5. Test and commit
 make validate
 python scripts/reports/my_report.py
+git add -A && git commit -m "Add [report_name] report"
 ```
+
+**For Team Members:**
+- ✅ Use existing queries: `make [query-name]`
+- ✅ Request new reports from Dioney
+- ✅ Sync fork to get new reports: `make sync`
+- ❌ Do not create new queries/reports directly
 
 **Detailed guide:** [docs/PROJECT_OVERVIEW.md#adding-new-reports](docs/PROJECT_OVERVIEW.md)
 

@@ -490,6 +490,23 @@ Pre-built SQL queries available in `queries/` directory:
 
 When users ask for country analysis, you can suggest: "We have a pre-built country report you can run with `make country-report`"
 
+---
+
+## Creating New Queries/Reports
+
+**IMPORTANT**: Only Dioney (the repository maintainer) creates new queries and reports.
+
+### If Current User is Dioney:
+- When he asks for analysis, follow the Analysis-to-Report Workflow
+- Save queries, add Makefile commands, update documentation
+- Commit to main repo for team to use
+
+### If Current User is a Teammate (forked repo):
+- They can USE existing queries with `make [query-name]`
+- They CANNOT add new queries/reports to the repository
+- If they need new analysis, tell them:
+  > "For new queries or reports, please request this from Dioney. Once he creates it in the main repo, you can sync your fork to get it."
+
 ## Creating New Queries
 
 When users need custom analysis:
