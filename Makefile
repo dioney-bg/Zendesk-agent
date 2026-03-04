@@ -31,6 +31,10 @@ help:
 	@echo "Ad-hoc Queries (Industry):"
 	@echo "  make amer-industry-growth       Top 5 industries YoY growth for AMER"
 	@echo ""
+	@echo "Ad-hoc Queries (Competitive):"
+	@echo "  make bot-competitor-wins        Top 20 AI Agent wins vs bot competitors"
+	@echo "  make bot-competitor-pipeline    Top 20 AI Agent pipeline vs bot competitors"
+	@echo ""
 	@echo "Development:"
 	@echo "  make test         Run tests (when available)"
 	@echo "  make clean        Clean generated files"
@@ -91,6 +95,13 @@ country-decreases-report:
 # Ad-hoc Queries - Industry
 amer-industry-growth:
 	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/industry/amer_industry_growth_yoy.sql --format=table
+
+# Ad-hoc Queries - Competitive Analysis
+bot-competitor-wins:
+	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/competitive/bot_competitor_wins.sql --format=table
+
+bot-competitor-pipeline:
+	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/competitive/bot_competitor_pipeline.sql --format=table
 
 # Run tests (placeholder)
 test:

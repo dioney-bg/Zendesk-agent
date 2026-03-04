@@ -138,6 +138,22 @@ make amer-industry-growth
 Shows top 5 industries by YoY ARR growth for AMER leader only.
 **Query:** `queries/industry/amer_industry_growth_yoy.sql`
 
+### Competitive Analysis
+
+**AI Agent Wins vs Bot Competitors**
+```bash
+make bot-competitor-wins
+```
+Shows top 20 closed AI Agent bookings that competed against Ada, Forethought, Sierra, or Decagon (since 2025).
+**Query:** `queries/competitive/bot_competitor_wins.sql`
+
+**AI Agent Pipeline vs Bot Competitors**
+```bash
+make bot-competitor-pipeline
+```
+Shows top 20 open AI Agent opportunities currently competing against bot competitors (FY2027 YTD).
+**Query:** `queries/competitive/bot_competitor_pipeline.sql`
+
 **💡 Pattern-Based Approach:** The interactive agent can adapt these queries for any leader (EMEA, APAC, LATAM, SMB, Digital), any top N (5, 10, 20), or any time period. Just ask in natural language instead of memorizing commands!
 
 ## Automation

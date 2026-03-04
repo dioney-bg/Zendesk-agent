@@ -551,6 +551,22 @@ More reports can be added following the modular architecture in `scripts/reports
   - Current vs prior year comparison
   - Location: `queries/industry/amer_industry_growth_yoy.sql`
 
+### Competitive Analysis
+
+- **Bot Competitor Wins** (`make bot-competitor-wins`)
+  - Top 20 closed AI Agent bookings vs bot competitors (Ada, Forethought, Sierra, Decagon)
+  - Since 2025-01-01
+  - Uses DDG_DASHBOARD_OPP_PLUS_QUOTE for PRIMARY_COMPETITOR_NEW__C field
+  - PRODUCT_BOOKING_ARR_USD (booking ARR)
+  - Location: `queries/competitive/bot_competitor_wins.sql`
+
+- **Bot Competitor Pipeline** (`make bot-competitor-pipeline`)
+  - Top 20 open AI Agent opportunities vs bot competitors
+  - FY2027 YTD (close date >= 2026-02-01)
+  - Uses COMPETITORS_T for MAIN_COMPETITOR/MAIN_LOST_COMPETITOR fields
+  - PRODUCT_ARR_USD (pipeline ARR)
+  - Location: `queries/competitive/bot_competitor_pipeline.sql`
+
 ### Pattern Adaptation Examples
 
 **Don't suggest make commands** - just run the adapted query:

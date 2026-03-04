@@ -109,6 +109,12 @@ strategy-agent
   - **Run:** `make amer-industry-growth`
   - **Or ask agent:** "Show me EMEA industry growth" (adapts for any leader)
 
+🤖 **Competitive Analysis** (Bot Competitors)
+- **AI Agent Wins vs Bot Competitors** - Top 20 closed bookings against Ada, Forethought, Sierra, Decagon
+  - **Run:** `make bot-competitor-wins`
+- **AI Agent Pipeline vs Bot Competitors** - Top 20 open opportunities against bot competitors
+  - **Run:** `make bot-competitor-pipeline`
+
 **💡 Tip:** The agent can adapt these patterns for any leader, time period, or top N without needing new commands. Just ask in natural language!
 
 ### Coming Soon
