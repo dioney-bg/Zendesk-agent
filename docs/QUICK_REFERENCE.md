@@ -99,7 +99,12 @@ uploader.list_files(folder_id=folder_id)
 
 ## Ad-hoc Queries
 
-Pre-built SQL queries for common analyses. Run directly with Snowflake CLI.
+**Recommended:** Ask the interactive agent in natural language!
+- "Show me top 10 countries by ARR growth"
+- "Which EMEA industries are growing fastest?"
+- "Compare APAC Q1 to Q4"
+
+The agent adapts these patterns automatically. You can also run them directly:
 
 ### Geographic Analysis
 
@@ -132,6 +137,8 @@ make amer-industry-growth
 ```
 Shows top 5 industries by YoY ARR growth for AMER leader only.
 **Query:** `queries/industry/amer_industry_growth_yoy.sql`
+
+**💡 Pattern-Based Approach:** The interactive agent can adapt these queries for any leader (EMEA, APAC, LATAM, SMB, Digital), any top N (5, 10, 20), or any time period. Just ask in natural language instead of memorizing commands!
 
 ## Automation
 

@@ -92,7 +92,9 @@ strategy-agent
 
 ### Ad-hoc Queries
 
-Pre-built SQL queries for common analyses:
+**Primary Way:** Ask the interactive agent in natural language (e.g., "Show me top 10 countries by growth")
+
+**Convenience Commands:** Pre-built SQL queries can also be run directly:
 
 🌎 **Geographic Analysis**
 - **Top Countries by ARR & Accounts** - Current snapshot of top 5 countries
@@ -105,8 +107,9 @@ Pre-built SQL queries for common analyses:
 🏭 **Industry Analysis**
 - **AMER Industry Growth YoY** - Top 5 industries by growth for AMER leader
   - **Run:** `make amer-industry-growth`
+  - **Or ask agent:** "Show me EMEA industry growth" (adapts for any leader)
 
-All queries in `queries/` directory can be run directly with Snowflake CLI.
+**💡 Tip:** The agent can adapt these patterns for any leader, time period, or top N without needing new commands. Just ask in natural language!
 
 ### Coming Soon
 
