@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(snow:*)",
+      "Bash(/opt/homebrew/bin/snow:*)",
+      "Bash(/usr/local/bin/snow:*)",
+      "Bash(/Applications/SnowflakeCLI.app/Contents/MacOS/snow:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(wc:*)"
+    ]
+  }
+}
