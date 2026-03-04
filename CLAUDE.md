@@ -189,6 +189,40 @@ SELECT
 FROM summary
 ```
 
+### Always Include "All Other" Grouping Row
+
+**CRITICAL**: When showing top performers or highest growth rankings (top 5, top 10, etc.), ALWAYS include an "All Other [Category]" row that aggregates everything not in the top N.
+
+**Why:** This provides complete context showing what % the top performers represent vs. the rest.
+
+**Pattern:**
+```sql
+WITH ranked_data AS (
+    SELECT *, ROW_NUMBER() OVER (ORDER BY metric DESC) as rank
+    FROM source_data
+),
+top_n AS (
+    SELECT * FROM ranked_data WHERE rank <= 5
+),
+all_others AS (
+    SELECT
+        'All Other [Category]' as name,
+        SUM(accounts) as accounts,
+        SUM(arr) as arr,
+        SUM(growth) as growth
+    FROM ranked_data
+    WHERE rank > 5
+)
+SELECT * FROM top_n
+UNION ALL
+SELECT * FROM all_others;
+```
+
+**Examples:**
+- "Top 5 industries" → Include "All Other Industries" row
+- "Top 10 accounts" → Include "All Other Accounts" row
+- "Highest growth segments" → Include "All Other Segments" row
+
 ## Fiscal Year Calendar
 
 **CRITICAL**: Zendesk fiscal year starts in **February**, NOT January.
