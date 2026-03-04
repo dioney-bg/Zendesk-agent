@@ -51,13 +51,25 @@ echo "Step 1: Checking Prerequisites"
 echo "════════════════════════════════════════════════════════════════"
 echo ""
 
-# Check Python
+# Check Python (require 3.11+)
 print_status "Checking Python installation..."
-if command -v python3 &> /dev/null; then
-    PYTHON_VERSION=$(python3 --version)
-    print_success "Python found: $PYTHON_VERSION"
-else
-    print_error "Python 3 not found. Please install Python 3.8 or higher."
+PYTHON_CMD=""
+for cmd in python3.13 python3.12 python3.11 python3; do
+    if command -v $cmd &> /dev/null; then
+        VERSION=$($cmd --version 2>&1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
+        MAJOR=$(echo $VERSION | cut -d. -f1)
+        MINOR=$(echo $VERSION | cut -d. -f2)
+        if [ "$MAJOR" -ge 3 ] && [ "$MINOR" -ge 11 ]; then
+            PYTHON_CMD=$cmd
+            print_success "Python found: $($cmd --version)"
+            break
+        fi
+    fi
+done
+
+if [ -z "$PYTHON_CMD" ]; then
+    print_error "Python 3.11 or higher required. Please install:"
+    echo "  brew install python@3.11"
     exit 1
 fi
 
@@ -71,19 +83,41 @@ else
     exit 1
 fi
 
-# Check Snowflake CLI
+# Check Snowflake CLI (check common paths)
 print_status "Checking Snowflake CLI..."
-SNOW_CLI="/Applications/SnowflakeCLI.app/Contents/MacOS/snow"
-if [ -f "$SNOW_CLI" ]; then
-    print_success "Snowflake CLI found"
-else
-    print_warning "Snowflake CLI not found at expected location."
-    read -p "Enter path to your Snowflake CLI (or press Enter to skip): " CUSTOM_SNOW_PATH
-    if [ ! -z "$CUSTOM_SNOW_PATH" ]; then
+SNOW_CLI=""
+COMMON_PATHS=(
+    "/opt/homebrew/bin/snow"                           # Homebrew (Apple Silicon)
+    "/usr/local/bin/snow"                              # Homebrew (Intel Mac)
+    "/Applications/SnowflakeCLI.app/Contents/MacOS/snow"  # GUI installer
+    "$HOME/.local/bin/snow"                            # Manual install
+)
+
+for path in "${COMMON_PATHS[@]}"; do
+    if [ -f "$path" ]; then
+        SNOW_CLI="$path"
+        print_success "Snowflake CLI found at: $path"
+        break
+    fi
+done
+
+if [ -z "$SNOW_CLI" ]; then
+    print_warning "Snowflake CLI not found in common locations."
+    echo ""
+    echo "Checked paths:"
+    for path in "${COMMON_PATHS[@]}"; do
+        echo "  - $path"
+    done
+    echo ""
+    echo "📥 To install Snowflake CLI:"
+    echo "  brew install snowflake-cli"
+    echo ""
+    read -p "Or enter custom path (or press Enter to exit): " CUSTOM_SNOW_PATH
+    if [ ! -z "$CUSTOM_SNOW_PATH" ] && [ -f "$CUSTOM_SNOW_PATH" ]; then
         SNOW_CLI="$CUSTOM_SNOW_PATH"
+        print_success "Using custom path: $SNOW_CLI"
     else
-        print_error "Snowflake CLI is required. Please install from:"
-        echo "https://docs.snowflake.com/en/user-guide/snowsql-install-config"
+        print_error "Snowflake CLI is required to continue."
         exit 1
     fi
 fi
@@ -100,13 +134,13 @@ if [ -d "venv" ]; then
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         rm -rf venv
-        print_status "Creating new virtual environment..."
-        python3 -m venv venv
+        print_status "Creating new virtual environment with $PYTHON_CMD..."
+        $PYTHON_CMD -m venv venv
         print_success "Virtual environment created"
     fi
 else
-    print_status "Creating virtual environment..."
-    python3 -m venv venv
+    print_status "Creating new virtual environment with $PYTHON_CMD..."
+    $PYTHON_CMD -m venv venv
     print_success "Virtual environment created"
 fi
 
@@ -120,10 +154,27 @@ print_status "Activating virtual environment..."
 source venv/bin/activate
 print_success "Virtual environment activated"
 
-print_status "Installing Python packages (this may take a few minutes)..."
-pip install --upgrade pip > /dev/null 2>&1
-pip install -r requirements.txt > /dev/null 2>&1
-print_success "Dependencies installed"
+print_status "Upgrading pip..."
+python -m pip install --upgrade pip --quiet
+print_success "pip upgraded"
+
+print_status "Installing Python packages from requirements.txt (this may take a few minutes)..."
+if [ -f "requirements.txt" ]; then
+    python -m pip install -r requirements.txt --quiet
+    print_success "Dependencies installed"
+else
+    print_error "requirements.txt not found!"
+    exit 1
+fi
+
+# Verify installations
+print_status "Verifying installations..."
+if python -c "import pandas, yaml, openpyxl" 2>/dev/null; then
+    print_success "All required packages installed correctly"
+else
+    print_error "Some packages failed to install. Check errors above."
+    exit 1
+fi
 
 echo ""
 echo "════════════════════════════════════════════════════════════════"

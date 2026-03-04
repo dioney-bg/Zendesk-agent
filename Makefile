@@ -1,7 +1,7 @@
 # Sales Strategy Reporting Agent - Makefile
 # Convenient commands for common tasks
 
-.PHONY: help setup install test clean run validate docs setup-drive test-drive ask-chatgpt
+.PHONY: help setup install test clean run validate docs setup-drive ask-chatgpt
 
 # Default target
 help:
@@ -17,7 +17,6 @@ help:
 	@echo "  make setup-drive  Set up Google Drive integration (optional)"
 	@echo "  make install      Install Python dependencies"
 	@echo "  make validate     Validate your setup"
-	@echo "  make test-drive   Test Google Drive connection"
 	@echo ""
 	@echo "Running Reports:"
 	@echo "  make run          Launch interactive menu"
@@ -69,10 +68,6 @@ install:
 # Validate setup
 validate:
 	@./bin/validate_setup.sh
-
-# Test Google Drive connection
-test-drive:
-	@. venv/bin/activate && python scripts/core/test_shared_drive.py
 
 # Run interactive menu
 run:

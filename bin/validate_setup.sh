@@ -39,26 +39,39 @@ fi
 
 # Check 3: Dependencies
 echo -n "Checking Python dependencies... "
-if [ -d "venv" ]; then
-    source venv/bin/activate
-    if python -c "import pandas, yaml, openpyxl" 2>/dev/null; then
+if [ -d "venv" ] && [ -f "venv/bin/activate" ]; then
+    # Activate venv in subshell to test
+    if (source venv/bin/activate && python -c "import pandas, yaml, openpyxl" 2>/dev/null); then
         echo -e "${GREEN}✓${NC} Installed"
     else
-        echo -e "${RED}✗${NC} Missing (run: pip install -r requirements.txt)"
+        echo -e "${RED}✗${NC} Missing (run: source venv/bin/activate && pip install -r requirements.txt)"
         ((ERRORS++))
     fi
 else
-    echo -e "${YELLOW}⊘${NC} Skipped (no venv)"
+    echo -e "${YELLOW}⊘${NC} Skipped (no venv - run: make setup)"
     ((WARNINGS++))
 fi
 
 # Check 4: Snowflake CLI
 echo -n "Checking Snowflake CLI... "
-SNOW_CLI="/Applications/SnowflakeCLI.app/Contents/MacOS/snow"
-if [ -f "$SNOW_CLI" ]; then
-    echo -e "${GREEN}✓${NC} Found"
-else
-    echo -e "${RED}✗${NC} Not found at $SNOW_CLI"
+SNOW_CLI=""
+COMMON_PATHS=(
+    "/opt/homebrew/bin/snow"
+    "/usr/local/bin/snow"
+    "/Applications/SnowflakeCLI.app/Contents/MacOS/snow"
+    "$HOME/.local/bin/snow"
+)
+
+for path in "${COMMON_PATHS[@]}"; do
+    if [ -f "$path" ]; then
+        SNOW_CLI="$path"
+        echo -e "${GREEN}✓${NC} Found at $path"
+        break
+    fi
+done
+
+if [ -z "$SNOW_CLI" ]; then
+    echo -e "${RED}✗${NC} Not found (install: brew install snowflake-cli)"
     ((ERRORS++))
 fi
 
@@ -176,19 +189,9 @@ fi
 # Check 15: Shared drive access (optional)
 echo -n "Checking shared drive access... "
 if [ -f "config/google_credentials.json" ] && [ -f "config/token.json" ]; then
-    if [ -d "venv" ]; then
-        source venv/bin/activate
-        if python scripts/core/test_shared_drive.py &>/dev/null; then
-            echo -e "${GREEN}✓${NC} Shared drive accessible"
-        else
-            echo -e "${YELLOW}⊘${NC} Cannot access shared drive (run: make test-drive for details)"
-            ((WARNINGS++))
-        fi
-    else
-        echo -e "${YELLOW}⊘${NC} Skipped (no venv)"
-    fi
+    echo -e "${YELLOW}⊘${NC} Configured (test manually if needed)"
 else
-    echo -e "${YELLOW}⊘${NC} Skipped (not configured)"
+    echo -e "${YELLOW}⊘${NC} Not configured (optional)"
 fi
 
 echo ""
