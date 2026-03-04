@@ -250,25 +250,41 @@ print_status "Activating virtual environment..."
 source venv/bin/activate
 print_success "Virtual environment activated"
 
-print_status "Upgrading pip..."
+print_status "Upgrading pip to latest version..."
 python -m pip install --upgrade pip --quiet
 print_success "pip upgraded"
 
-print_status "Installing Python packages from requirements.txt (this may take a few minutes)..."
+print_status "Installing Python packages from requirements.txt..."
+echo "  (This may take 3-5 minutes - installing data science libraries)"
 if [ -f "requirements.txt" ]; then
-    python -m pip install -r requirements.txt --quiet
+    python -m pip install -r requirements.txt --upgrade 2>&1 | grep -v "already satisfied" || true
     print_success "Dependencies installed"
 else
     print_error "requirements.txt not found!"
     exit 1
 fi
 
-# Verify installations
+# Verify critical installations
 print_status "Verifying installations..."
-if python -c "import pandas, yaml, openpyxl" 2>/dev/null; then
+if python -c "import pandas, numpy, yaml, openpyxl, matplotlib, snowflake.connector" 2>/dev/null; then
     print_success "All required packages installed correctly"
+
+    # Show versions for troubleshooting
+    echo ""
+    print_status "Installed versions:"
+    python -c "
+import pandas, numpy, matplotlib, snowflake.connector
+print('  pandas:', pandas.__version__)
+print('  numpy:', numpy.__version__)
+print('  matplotlib:', matplotlib.__version__)
+print('  snowflake-connector:', snowflake.connector.__version__)
+    "
 else
-    print_error "Some packages failed to install. Check errors above."
+    print_error "Some critical packages failed to install!"
+    echo ""
+    echo "Missing packages. Try running manually:"
+    echo "  source venv/bin/activate"
+    echo "  pip install -r requirements.txt"
     exit 1
 fi
 
