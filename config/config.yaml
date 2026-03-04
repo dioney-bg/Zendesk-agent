@@ -4,6 +4,7 @@
 snowflake:
   connection_name: zendesk
   account: ZENDESK-GLOBAL
+  user: dioney.blanco@zendesk.com
   warehouse: COEFFICIENT_WH
   default_database: PRESENTATION
   default_schema: CUSTOMER_EXPERIENCE
