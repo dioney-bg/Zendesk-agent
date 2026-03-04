@@ -23,8 +23,13 @@ help:
 	@echo "  make run          Launch interactive menu"
 	@echo "  make ai-report    Generate AI Penetration Report"
 	@echo ""
-	@echo "Ad-hoc Queries:"
-	@echo "  make country-report    Top 5 countries by ARR and account count"
+	@echo "Ad-hoc Queries (Geographic):"
+	@echo "  make country-report             Top 5 countries by ARR and accounts"
+	@echo "  make country-growth-report      Top 5 countries by YoY growth"
+	@echo "  make country-decreases-report   Countries with biggest account losses"
+	@echo ""
+	@echo "Ad-hoc Queries (Industry):"
+	@echo "  make amer-industry-growth       Top 5 industries YoY growth for AMER"
 	@echo ""
 	@echo "Development:"
 	@echo "  make test         Run tests (when available)"
@@ -73,9 +78,19 @@ run:
 ai-report:
 	@. venv/bin/activate && python scripts/reports/ai_penetration.py
 
-# Ad-hoc Queries
+# Ad-hoc Queries - Geographic
 country-report:
 	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/geographic/top_countries_by_arr_and_accounts.sql --format=table
+
+country-growth-report:
+	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/geographic/country_growth_yoy.sql --format=table
+
+country-decreases-report:
+	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/geographic/country_decreases_yoy.sql --format=table
+
+# Ad-hoc Queries - Industry
+amer-industry-growth:
+	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/industry/amer_industry_growth_yoy.sql --format=table
 
 # Run tests (placeholder)
 test:

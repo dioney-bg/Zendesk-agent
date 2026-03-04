@@ -482,14 +482,40 @@ More reports can be added following the modular architecture in `scripts/reports
 Pre-built SQL queries available in `queries/` directory:
 
 ### Geographic Analysis
+
+**Current Snapshot:**
 - **Top Countries by ARR and Accounts** (`make country-report`)
-  - Shows top 5 countries by total ARR
-  - Shows top 5 countries by account count
-  - Includes "All Other Countries" aggregation
-  - Includes TOTAL row
+  - Top 5 countries by total ARR
+  - Top 5 countries by account count
   - Location: `queries/geographic/top_countries_by_arr_and_accounts.sql`
 
-When users ask for country analysis, you can suggest: "We have a pre-built country report you can run with `make country-report`"
+**Year over Year:**
+- **Country Growth YoY** (`make country-growth-report`)
+  - Top 5 countries by ARR growth (absolute $)
+  - Top 5 countries by account growth
+  - Compares current vs ~13 months prior
+  - Location: `queries/geographic/country_growth_yoy.sql`
+
+- **Countries with Account Decreases** (`make country-decreases-report`)
+  - Top 5 countries with biggest account losses
+  - Complete breakdown: decreases/increases/no-change
+  - Shows if ARR grew despite account loss
+  - Location: `queries/geographic/country_decreases_yoy.sql`
+
+### Industry Analysis
+
+- **AMER Leader - Industry Growth YoY** (`make amer-industry-growth`)
+  - Top 5 industries by YoY ARR growth
+  - Filtered to AMER leader only
+  - Current vs prior year comparison
+  - Location: `queries/industry/amer_industry_growth_yoy.sql`
+
+### Suggesting Queries
+
+When users ask for analysis, check if a pre-built query exists:
+- "Show me countries by ARR" → "We have `make country-report`"
+- "Which countries are growing?" → "Try `make country-growth-report`"
+- "Top industries in AMER" → "Run `make amer-industry-growth`"
 
 ---
 

@@ -95,11 +95,18 @@ strategy-agent
 Pre-built SQL queries for common analyses:
 
 🌎 **Geographic Analysis**
-- **Top Countries by ARR & Accounts** - Shows top 5 countries ranked by total ARR and account count
+- **Top Countries by ARR & Accounts** - Current snapshot of top 5 countries
   - **Run:** `make country-report`
-  - **Location:** `queries/geographic/top_countries_by_arr_and_accounts.sql`
+- **Country Growth YoY** - Top 5 countries by YoY growth (ARR and accounts)
+  - **Run:** `make country-growth-report`
+- **Countries with Account Decreases** - Countries losing accounts YoY
+  - **Run:** `make country-decreases-report`
 
-More queries available in `queries/` directory.
+🏭 **Industry Analysis**
+- **AMER Industry Growth YoY** - Top 5 industries by growth for AMER leader
+  - **Run:** `make amer-industry-growth`
+
+All queries in `queries/` directory can be run directly with Snowflake CLI.
 
 ### Coming Soon
 

@@ -103,20 +103,35 @@ Pre-built SQL queries for common analyses. Run directly with Snowflake CLI.
 
 ### Geographic Analysis
 
-**Top 5 Countries by ARR and Account Count**
+**Top 5 Countries by ARR and Account Count** (Current snapshot)
 ```bash
 make country-report
 ```
+Shows top 5 countries by total ARR and account count (current period only).
+**Query:** `queries/geographic/top_countries_by_arr_and_accounts.sql`
 
-Shows:
-- Top 5 countries by total ARR
-- Top 5 countries by account count
-- "All Other Countries" aggregation
-- Total row for validation
+**Country Growth YoY**
+```bash
+make country-growth-report
+```
+Shows top 5 countries by YoY growth (ARR and accounts). Compares current vs ~13 months prior.
+**Query:** `queries/geographic/country_growth_yoy.sql`
 
-Output: Table format with accounts, ARR, and percentages
+**Countries with Biggest Account Decreases**
+```bash
+make country-decreases-report
+```
+Shows top 5 countries with biggest account losses YoY, plus complete breakdown (decreases/increases/no-change).
+**Query:** `queries/geographic/country_decreases_yoy.sql`
 
-**Query Location:** `queries/geographic/top_countries_by_arr_and_accounts.sql`
+### Industry Analysis
+
+**AMER Leader - Industry Growth YoY**
+```bash
+make amer-industry-growth
+```
+Shows top 5 industries by YoY ARR growth for AMER leader only.
+**Query:** `queries/industry/amer_industry_growth_yoy.sql`
 
 ## Automation
 
