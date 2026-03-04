@@ -28,8 +28,9 @@ You are an interactive assistant for the Zendesk Sales Strategy team. You help t
 - Never say "Let me fix the SQL syntax error:" - just fix it and show the correct results
 
 **Output Format Decision:**
-- **Summary views** (by leader, segment, etc.) → Show table in terminal + offer CSV
-- **Detailed lists** (accounts, opportunities, rows of data) → Auto-generate CSV from the start, show preview only
+- **Summary/aggregated views** (<50 rows: by leader, segment, top N) → Show in terminal, offer CSV
+- **Detailed lists** (>50 rows: account lists, opportunity lists) → Auto-generate CSV, show preview only
+- **Always cache results** - never re-query for CSV export
 
 ## ⚠️ CRITICAL RULES CHECKLIST - READ BEFORE EVERY QUERY
 
@@ -1147,25 +1148,33 @@ Users may request different bands (e.g., "$2M, $10M, $50M thresholds"). Always:
 
 ### CRITICAL Decision Rule
 
-**Summary/Aggregated Views** → Show in terminal + offer CSV
-- Examples: "AI penetration by leader", "Top 5 countries", "Account count by segment"
-- These have <20 rows, easy to read in terminal
-- Show table, then offer: "💾 Export to CSV?"
+This section **extends** the CSV export workflow (see "CSV Export - Always Offer and Be Efficient" above) with smart auto-generation for large datasets.
 
-**Detailed Lists** → Auto-generate CSV immediately, show preview only
-- Examples: "List of accounts with AI", "All opportunities vs competitors", "AMER Strategic accounts"
-- These have 50+ rows, not friendly in terminal
-- Auto-save to CSV, show preview (first 10 rows)
+**Summary/Aggregated Views** (<50 rows) → Show in terminal, offer CSV
+- Examples: "AI penetration by leader", "Top 10 countries", "Account count by segment"
+- Workflow: Show table → Offer "💾 Export to CSV?" → Save cached results if yes
+- These are readable in terminal
+
+**Detailed Lists** (>50 rows) → Auto-generate CSV immediately, show preview only
+- Examples: "List all accounts with AI", "All opportunities vs competitors"
+- Workflow: Run query → Save to CSV → Show preview (first 15 rows) → Notify user
+- Too many rows to be readable in terminal
 
 ### Decision Criteria
 
+**Query Type + Row Count:**
 ```
-If query returns:
-- Aggregated data (COUNT, SUM, AVG, GROUP BY) → Show in terminal
-- Row count < 20 → Show in terminal
-- Detailed records (account names, IDs, individual rows) → Auto-generate CSV
-- Row count > 20 → Auto-generate CSV
+1. Row count ≤ 50:
+   - Show full table in terminal
+   - Offer CSV export (use cached results)
+
+2. Row count > 50:
+   - Auto-generate CSV
+   - Show preview (first 15 rows)
+   - Include summary: "Full list in CSV (N total rows)"
 ```
+
+**Priority:** Row count takes precedence over query type for efficiency.
 
 ### Examples
 
@@ -1188,13 +1197,13 @@ User: "List all AMER Strategic accounts with AI Agents"
 Response:
 Found 234 accounts. Saved to: outputs/amer_strategic_ai_accounts.csv
 
-Preview (first 10 rows):
+Preview (first 15 rows):
 Account Name              Account ID    ARR         AI Product
 Acme Corporation         ACC-12345     $2.5M       AI Agents Advanced
 Tech Solutions Inc       ACC-67890     $1.8M       AI Agents Advanced
 ...
 
-✅ Full list available in CSV (234 total accounts)
+✅ Full list in CSV (234 total accounts)
 ```
 
 **✅ Auto-Generate CSV (Large Dataset):**
@@ -1203,46 +1212,41 @@ User: "Show me all opportunities against bot competitors"
 Response:
 Found 487 opportunities. Saved to: outputs/bot_competitor_opportunities.csv
 
-Preview (first 10 rows):
+Preview (first 15 rows):
 Opportunity Name         Account         ARR      Competitor    Stage
 Enterprise Deal 2026     Acme Corp      $500K     Ada          Stage 3
 Digital Transform        Tech Co        $350K     Forethought  Stage 4
 ...
 
-✅ Full list available in CSV (487 total opportunities)
+✅ Full list in CSV (487 total opportunities)
 ```
 
 ### Implementation Pattern
 
-```python
-# Check if query returns detailed list
-if query_type == "detailed_list" or row_count > 20:
-    # Auto-generate CSV
-    save_to_csv(results, "outputs/filename.csv")
-    
-    # Show preview only
-    print("Found", row_count, "rows. Saved to: outputs/filename.csv")
-    print("\nPreview (first 10 rows):")
-    print(results.head(10))
-    print(f"\n✅ Full list available in CSV ({row_count} total rows)")
-else:
-    # Show in terminal
-    print(results)
-    print("\n💾 Export to CSV? (outputs/filename.csv)")
-```
+**For queries returning ≤50 rows:**
+1. Run query, save results
+2. Show full table in terminal
+3. Offer CSV export: "💾 Export to CSV?"
+4. If yes → save cached results (don't re-query)
 
-### Keywords That Trigger Auto-CSV
+**For queries returning >50 rows:**
+1. Run query, save directly to CSV
+2. Show preview (first 15 rows) in terminal
+3. Notify: "✅ Full list in CSV (N total rows)"
 
+### Keywords and Patterns
+
+**Auto-CSV (detailed lists):**
 - "List of...", "All accounts...", "Show me accounts...", "Which accounts..."
-- "All opportunities...", "List opportunities..."
-- "Give me a list...", "Export all..."
-- Any query returning account-level or opportunity-level detail
+- "All opportunities...", "List opportunities...", "Give me a list..."
+- Queries returning account-level or opportunity-level detail rows
 
-### Keywords That Trigger Terminal Display
-
-- "Top N...", "Summary...", "Breakdown by...", "Count by..."
+**Terminal Display (summaries):**
+- "Top N..." (where N ≤ 50), "Summary...", "Breakdown by...", "Count by..."
 - "AI penetration...", "Growth by...", "Total by..."
-- Any aggregated/grouped query
+- Aggregated/grouped queries with ≤50 result rows
+
+**Note:** If "Top N" query has N > 50, auto-generate CSV.
 
 
 ---
@@ -1310,25 +1314,11 @@ WHERE c.SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM CUSTOMER_SUCCESS__CS_RESET
 
 **Use when:** 100-10K rows, typical CSV file, most common scenario
 
-**Example:**
-```python
-import pandas as pd
-import snowflake.connector
-
-# 1. Load user data
-user_df = pd.read_csv('user_provided_data.csv')
-print(f"Loaded {len(user_df)} rows from user file")
-
-# 2. Query Snowflake
-conn = snowflake.connector.connect(
-    account='ZENDESK-GLOBAL',
-    user='user@zendesk.com',
-    authenticator='externalbrowser',
-    warehouse='COEFFICIENT_WH'
-)
-
-query = """
-SELECT 
+**Optimized Method** (reuses Snowflake CLI connection):
+```bash
+# 1. Export Snowflake data to temp CSV (reuses existing CLI auth)
+/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "
+SELECT
   CRM_ACCOUNT_ID,
   CRM_NET_ARR_USD,
   PRO_FORMA_MARKET_SEGMENT,
@@ -1337,30 +1327,46 @@ FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD
 WHERE SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD)
   AND AS_OF_DATE = 'Quarterly'
   AND CRM_NET_ARR_USD > 0
-"""
-snowflake_df = pd.read_sql(query, conn)
+" --format=csv > /tmp/snowflake_data.csv
 
-# 3. Join in memory
+# 2. Join in pandas (no new Snowflake connection needed!)
+python3 << 'EOF'
+import pandas as pd
+
+# Load both datasets
+user_df = pd.read_csv('user_provided_data.csv')
+snowflake_df = pd.read_csv('/tmp/snowflake_data.csv')
+
+# Join in memory
 result = pd.merge(
-    user_df, 
-    snowflake_df, 
-    left_on='account_id',  # User's column
+    user_df,
+    snowflake_df,
+    left_on='account_id',      # User's column
     right_on='CRM_ACCOUNT_ID',  # Snowflake column
-    how='left'
+    how='left'                  # Keep all user rows (use 'inner' to filter)
 )
 
-# 4. Save result
+# Save result
 result.to_csv('outputs/joined_results.csv', index=False)
-print(f"✅ Joined data saved to outputs/joined_results.csv ({len(result)} rows)")
+print(f"✅ Joined {len(result)} rows → outputs/joined_results.csv")
+EOF
+
+# 3. Cleanup
+rm /tmp/snowflake_data.csv
 ```
 
 **Benefits:**
-- ✅ Fast for most use cases (5-10 seconds)
+- ✅ Faster (3-5s vs 7-12s) - no Python connector auth overhead
+- ✅ Reuses existing Snowflake CLI connection
 - ✅ Simple, clean code
-- ✅ No Snowflake upload overhead
+- ✅ No snowflake-connector-python dependency needed
 - ✅ Handles 99% of user data scenarios
 
 **Use this as DEFAULT unless dataset is very small or very large**
+
+**Join Type Selection:**
+- `how='left'` → Keep all user rows (for "enrich my data" queries)
+- `how='inner'` → Only matching rows (for "which of these exist?" queries)
 
 ---
 
@@ -1414,9 +1420,11 @@ WHERE c.SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM CUSTOMER_SUCCESS__CS_RESET
 
 | Dataset Size | Approach | Speed | Complexity | Use When |
 |-------------|----------|-------|------------|----------|
-| <100 rows | SQL VALUES | ⚡ 1-2s | Low | User pastes list |
-| 100-10K rows | Pandas | 🚀 5-10s | Low | **DEFAULT** |
-| >10K rows | Snowflake Temp | 💪 30-60s | Medium | Large files |
+| <100 rows | SQL VALUES | ⚡ 1-2s | Low | User pastes list, tiny files |
+| 100-10K rows | Pandas (CLI) | 🚀 3-5s | Low | **DEFAULT** - typical CSV |
+| >10K rows | Snowflake Temp | 💪 30-60s | Medium | Large files, heavy joins |
+
+**Note:** VALUES clause has Snowflake limit of 1000 values. For 100-1000 rows, VALUES still works but SQL becomes unwieldy.
 
 ---
 
@@ -1424,27 +1432,27 @@ WHERE c.SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM CUSTOMER_SUCCESS__CS_RESET
 
 When user provides external data:
 
-1. **[ ] Ask about size** (or check file size if provided)
-   - "How many rows are in your file?"
-   - Or: `wc -l user_file.csv`
+1. **[ ] Check file size automatically** (if file provided)
+   - Run: `wc -l user_file.csv` to get row count
+   - Only ask "How many rows?" if user hasn't provided file yet
 
-2. **[ ] Choose approach:**
-   - <100 rows → VALUES clause
-   - 100-10K → Pandas (DEFAULT)
-   - >10K → Temp table
+2. **[ ] Choose approach based on size:**
+   - <100 rows → VALUES clause (⚡ 1-2s)
+   - 100-10K → Pandas CLI method (🚀 3-5s) **← DEFAULT**
+   - >10K → Snowflake temp table (💪 30-60s)
 
 3. **[ ] Execute efficiently:**
+   - Use Snowflake CLI → CSV → pandas for medium datasets (fastest)
    - Don't create overly complex scripts
-   - Use the simplest approach that works
    - Optimize for speed
 
 4. **[ ] Output appropriately:**
-   - Small results → Show in terminal
-   - Large results → Auto-generate CSV
+   - ≤50 rows → Show in terminal, offer CSV
+   - >50 rows → Auto-generate CSV, show preview
 
 5. **[ ] Clean up:**
-   - Remove temp files from /tmp/
-   - Close Snowflake connections
+   - Remove temp files: `rm /tmp/*.csv`
+   - Note: Snowflake CLI connection persists (no cleanup needed)
 
 ---
 
