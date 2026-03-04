@@ -131,6 +131,20 @@ FROM FOUNDATIONAL.CUSTOMER.DIM_CRM_ACCOUNTS_DAILY_SNAPSHOT  -- No _BCV!
 WHERE snapshot_date IN ('2026-01-31', '2026-02-28')
 ```
 
+**Using BCV Dimension Tables for Historical Comparisons:**
+
+When doing period-over-period analysis and you need dimensional data (country, industry) from `SALESFORCE_ACCOUNT_BCV`, use the **current assignment for BOTH periods**:
+
+```sql
+-- Current period
+LEFT JOIN CLEANSED.SALESFORCE.SALESFORCE_ACCOUNT_BCV s ON current.CRM_ACCOUNT_ID = s.ID
+
+-- Prior period - use SAME BCV table (current assignment)
+LEFT JOIN CLEANSED.SALESFORCE.SALESFORCE_ACCOUNT_BCV s ON prior.CRM_ACCOUNT_ID = s.ID
+```
+
+This applies today's country/industry assignment to historical data, since there's no historical dimension table available.
+
 ### Leader Assignment Logic
 
 **CRITICAL**: Leaders are assigned based on segment and region:
@@ -461,6 +475,20 @@ The project includes these ready-to-use reports:
    - Outputs: CSV, Excel, Slack-ready format
 
 More reports can be added following the modular architecture in `scripts/reports/`.
+
+## Available Ad-hoc Queries
+
+Pre-built SQL queries available in `queries/` directory:
+
+### Geographic Analysis
+- **Top Countries by ARR and Accounts** (`make country-report`)
+  - Shows top 5 countries by total ARR
+  - Shows top 5 countries by account count
+  - Includes "All Other Countries" aggregation
+  - Includes TOTAL row
+  - Location: `queries/geographic/top_countries_by_arr_and_accounts.sql`
+
+When users ask for country analysis, you can suggest: "We have a pre-built country report you can run with `make country-report`"
 
 ## Creating New Queries
 

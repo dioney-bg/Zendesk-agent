@@ -97,6 +97,27 @@ folder_id = uploader.get_folder_id("Zendesk AI Reports")
 uploader.list_files(folder_id=folder_id)
 ```
 
+## Ad-hoc Queries
+
+Pre-built SQL queries for common analyses. Run directly with Snowflake CLI.
+
+### Geographic Analysis
+
+**Top 5 Countries by ARR and Account Count**
+```bash
+make country-report
+```
+
+Shows:
+- Top 5 countries by total ARR
+- Top 5 countries by account count
+- "All Other Countries" aggregation
+- Total row for validation
+
+Output: Table format with accounts, ARR, and percentages
+
+**Query Location:** `queries/geographic/top_countries_by_arr_and_accounts.sql`
+
 ## Automation
 
 ### Schedule Daily Report (9 AM)

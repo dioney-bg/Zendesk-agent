@@ -39,14 +39,15 @@ strategy-agent   # 🤖 Launch interactive AI assistant
                  # Ask questions, run queries, analyze data
 ```
 
-### Pre-built Reports
+### Pre-built Reports & Queries
 ```bash
-make setup       # Interactive setup for new users
-make run         # Launch interactive menu
-make ai-report   # Generate AI Penetration Report
-make validate    # Validate your configuration
-make docs        # Show documentation links
-make help        # Show all commands
+make setup          # Interactive setup for new users
+make run            # Launch interactive menu
+make ai-report      # Generate AI Penetration Report
+make country-report # Top 5 countries by ARR and accounts
+make validate       # Validate your configuration
+make docs           # Show documentation links
+make help           # Show all commands
 ```
 
 ---
@@ -79,7 +80,7 @@ strategy-agent
 
 ---
 
-## 📊 Available Reports
+## 📊 Available Reports & Queries
 
 ### Active Reports
 
@@ -88,6 +89,17 @@ strategy-agent
 - Breakdown by leader (AMER, EMEA, APAC, LATAM, SMB, Digital)
 - Quarter-over-quarter comparisons
 - **Run:** `make ai-report`
+
+### Ad-hoc Queries
+
+Pre-built SQL queries for common analyses:
+
+🌎 **Geographic Analysis**
+- **Top Countries by ARR & Accounts** - Shows top 5 countries ranked by total ARR and account count
+  - **Run:** `make country-report`
+  - **Location:** `queries/geographic/top_countries_by_arr_and_accounts.sql`
+
+More queries available in `queries/` directory.
 
 ### Coming Soon
 

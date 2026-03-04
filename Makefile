@@ -23,6 +23,9 @@ help:
 	@echo "  make run          Launch interactive menu"
 	@echo "  make ai-report    Generate AI Penetration Report"
 	@echo ""
+	@echo "Ad-hoc Queries:"
+	@echo "  make country-report    Top 5 countries by ARR and account count"
+	@echo ""
 	@echo "Development:"
 	@echo "  make test         Run tests (when available)"
 	@echo "  make clean        Clean generated files"
@@ -69,6 +72,10 @@ run:
 # Generate AI Penetration Report
 ai-report:
 	@. venv/bin/activate && python scripts/reports/ai_penetration.py
+
+# Ad-hoc Queries
+country-report:
+	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/geographic/top_countries_by_arr_and_accounts.sql --format=table
 
 # Run tests (placeholder)
 test:
