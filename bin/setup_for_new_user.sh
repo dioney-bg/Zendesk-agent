@@ -55,36 +55,80 @@ echo ""
 REQUIRED_PYTHON_VERSION="3.13.5"
 print_status "Checking Python installation..."
 echo ""
-print_status "⚠️  REQUIRED: Python ${REQUIRED_PYTHON_VERSION} (exact match)"
+print_status "⚠️  REQUIRED: Python ${REQUIRED_PYTHON_VERSION} (exact match for team consistency)"
 echo ""
 
 PYTHON_CMD=""
 
-# First, try pyenv if available (best option for version management)
+# First, check if pyenv is available
 if command -v pyenv &> /dev/null; then
-    print_status "Found pyenv - checking for Python ${REQUIRED_PYTHON_VERSION}..."
+    print_success "Found pyenv"
 
+    # Check if Python 3.13.5 is already installed in pyenv
     if pyenv versions --bare | grep -q "^${REQUIRED_PYTHON_VERSION}$"; then
         print_success "Python ${REQUIRED_PYTHON_VERSION} already installed via pyenv"
         PYTHON_CMD="$HOME/.pyenv/versions/${REQUIRED_PYTHON_VERSION}/bin/python"
     else
         print_warning "Python ${REQUIRED_PYTHON_VERSION} not found in pyenv"
-        read -p "Install Python ${REQUIRED_PYTHON_VERSION} via pyenv now? (y/n): " -n 1 -r
+        echo ""
+        read -p "Install Python ${REQUIRED_PYTHON_VERSION} via pyenv automatically? (y/n): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            print_status "Installing Python ${REQUIRED_PYTHON_VERSION} (this may take a few minutes)..."
+            print_status "Installing Python ${REQUIRED_PYTHON_VERSION}..."
+            echo "  (This may take 3-5 minutes - downloading and compiling)"
             pyenv install ${REQUIRED_PYTHON_VERSION}
             PYTHON_CMD="$HOME/.pyenv/versions/${REQUIRED_PYTHON_VERSION}/bin/python"
             print_success "Python ${REQUIRED_PYTHON_VERSION} installed!"
         fi
     fi
+else
+    # pyenv not found - offer to install everything automatically
+    print_warning "pyenv not found (best tool for managing Python versions)"
+    echo ""
+    echo "📦 What we'll install:"
+    echo "  1. pyenv (Python version manager via Homebrew)"
+    echo "  2. Python ${REQUIRED_PYTHON_VERSION} (via pyenv)"
+    echo ""
+    echo "Why pyenv? It allows multiple Python versions without conflicts."
+    echo ""
+    read -p "Install pyenv + Python ${REQUIRED_PYTHON_VERSION} automatically? (y/n): " -n 1 -r
+    echo
+
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        # Install pyenv
+        print_status "Installing pyenv via Homebrew..."
+        brew install pyenv
+
+        # Add pyenv to shell config
+        print_status "Configuring pyenv in ~/.zshrc..."
+        if ! grep -q 'PYENV_ROOT' ~/.zshrc; then
+            echo '' >> ~/.zshrc
+            echo '# pyenv configuration' >> ~/.zshrc
+            echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
+            echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
+            echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+        fi
+
+        # Source it for current session
+        export PYENV_ROOT="$HOME/.pyenv"
+        export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init -)"
+
+        print_success "pyenv installed and configured"
+
+        # Install Python 3.13.5
+        print_status "Installing Python ${REQUIRED_PYTHON_VERSION}..."
+        echo "  (This may take 3-5 minutes - downloading and compiling)"
+        pyenv install ${REQUIRED_PYTHON_VERSION}
+        PYTHON_CMD="$HOME/.pyenv/versions/${REQUIRED_PYTHON_VERSION}/bin/python"
+        print_success "Python ${REQUIRED_PYTHON_VERSION} installed!"
+    fi
 fi
 
-# If pyenv didn't work, check system Python installations
+# If automatic installation was declined, check system Python
 if [ -z "$PYTHON_CMD" ]; then
     print_status "Checking system Python installations..."
 
-    # Check common Python command patterns
     for cmd in python${REQUIRED_PYTHON_VERSION} python3.13 python3; do
         if command -v $cmd &> /dev/null; then
             ACTUAL_VERSION=$($cmd --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
@@ -97,34 +141,26 @@ if [ -z "$PYTHON_CMD" ]; then
     done
 fi
 
-# If still not found, provide installation instructions
+# If still not found, show manual instructions
 if [ -z "$PYTHON_CMD" ]; then
-    print_error "Python ${REQUIRED_PYTHON_VERSION} is required for team consistency!"
+    print_error "Python ${REQUIRED_PYTHON_VERSION} is required but not found!"
     echo ""
     echo "═══════════════════════════════════════════════════════════════"
-    echo "📥 Installation Options:"
+    echo "📥 Manual Installation Options:"
     echo "═══════════════════════════════════════════════════════════════"
     echo ""
-    echo "Option 1 (Recommended): Install via pyenv"
-    echo "  1. Install pyenv:"
-    echo "     brew install pyenv"
-    echo "     echo 'export PYENV_ROOT=\"\$HOME/.pyenv\"' >> ~/.zshrc"
-    echo "     echo 'export PATH=\"\$PYENV_ROOT/bin:\$PATH\"' >> ~/.zshrc"
-    echo "     echo 'eval \"\$(pyenv init -)\"' >> ~/.zshrc"
-    echo "     source ~/.zshrc"
-    echo ""
-    echo "  2. Install Python ${REQUIRED_PYTHON_VERSION}:"
-    echo "     pyenv install ${REQUIRED_PYTHON_VERSION}"
-    echo ""
-    echo "  3. Run setup again:"
-    echo "     make setup"
+    echo "Option 1 (Recommended): Install via pyenv manually"
+    echo "  brew install pyenv"
+    echo "  echo 'export PYENV_ROOT=\"\$HOME/.pyenv\"' >> ~/.zshrc"
+    echo "  echo 'export PATH=\"\$PYENV_ROOT/bin:\$PATH\"' >> ~/.zshrc"
+    echo "  echo 'eval \"\$(pyenv init -)\"' >> ~/.zshrc"
+    echo "  source ~/.zshrc"
+    echo "  pyenv install ${REQUIRED_PYTHON_VERSION}"
     echo ""
     echo "Option 2: Install via Homebrew"
     echo "  brew install python@3.13"
-    echo "  (Note: May not be exact ${REQUIRED_PYTHON_VERSION})"
     echo ""
-    echo "Option 3: Download from python.org"
-    echo "  Visit: https://www.python.org/downloads/release/python-${REQUIRED_PYTHON_VERSION//.}"
+    echo "Then run: make setup"
     echo ""
     echo "═══════════════════════════════════════════════════════════════"
     exit 1
