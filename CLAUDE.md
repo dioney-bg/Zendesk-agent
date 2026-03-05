@@ -7,19 +7,35 @@
 
 ## 🚨🚨🚨 CRITICAL - READ THIS FIRST 🚨🚨🚨
 
-**COMMAND TEMPLATE - USE THIS EVERY TIME:**
-
+**STEP 1: Run query with --format=table**
 ```bash
 snow sql -q "YOUR_QUERY" --format=table
-                          ^^^^^^^^^^^^^^^^
-                          REQUIRED! DO NOT FORGET!
 ```
 
-**Rules:**
-- ✅ CORRECT: `snow sql -q "SELECT ..." --format=table`
-- ❌ WRONG: `snow sql -q "SELECT ..."` (missing --format=table)
+**STEP 2: COPY the ASCII table from Bash tool results into your text response**
 
-**If you forget `--format=table`, NO TABLE WILL DISPLAY.**
+When `snow sql --format=table` returns ASCII table output in the Bash tool results, you MUST copy that exact ASCII table output into your text response to the user.
+
+**Do not skip it, summarize it, or paraphrase it – copy the formatted table verbatim from the tool results into your response.**
+
+**Example:**
+```
+Bash tool returns:
++--------+-------+
+| Leader | Total |
++--------+-------+
+| AMER   | 1,234 |
++--------+-------+
+
+Your text response MUST include:
++--------+-------+
+| Leader | Total |
++--------+-------+
+| AMER   | 1,234 |
++--------+-------+
+```
+
+**The ASCII table that appears in tool results MUST also appear in your response to the user.**
 
 ---
 
@@ -235,11 +251,16 @@ snow sql -q "SELECT leader, COUNT(*) FROM ... GROUP BY leader" --format=table
 
 **✅ MANDATORY: Every snow sql command MUST have --format=table**
 
-## 🎯 Calculation Accuracy (P0 - CRITICAL)
+## 🎯 Calculation Accuracy & Number Formatting (P0 - CRITICAL)
 
 **RULE:** Calculate with RAW numbers, format ONLY for display in final SELECT.
 
 **Why:** Formatting numbers too early (rounding, adding $ signs, converting to K/M) causes inaccurate calculations.
+
+**Number Formatting Rules:**
+- **ALWAYS use thousand separators (commas)** for readability
+- Use `TO_CHAR(number, '999,999,999')` or `TO_CHAR(number, 'FM999,999,999')` for whole numbers
+- Format in final SELECT only, after all calculations
 
 ### ❌ WRONG - Formatting Before Calculations
 
@@ -269,13 +290,21 @@ WHERE arr_band = '$1M+'  -- ❌ WRONG! Can't reference alias in WHERE
 ### ✅ CORRECT - Calculate First, Format Last
 
 ```sql
--- ✅ GOOD: Aggregate with raw numbers, format in final SELECT
+-- ✅ GOOD: Aggregate with raw numbers, format in final SELECT with commas
 SELECT
     region,
-    ROUND(SUM(CRM_NET_ARR_USD) / 1000, 1) as total_arr_thousands,  -- Format AFTER SUM
-    CONCAT('$', ROUND(SUM(CRM_NET_ARR_USD) / 1000, 1), 'K') as formatted_arr
+    TO_CHAR(COUNT(*), 'FM999,999,999') as account_count,  -- Add commas
+    CONCAT('$', ROUND(SUM(CRM_NET_ARR_USD) / 1000000, 1), 'M') as formatted_arr
 FROM accounts
 GROUP BY region
+
+-- ✅ GOOD: Format numbers with thousand separators
+SELECT
+    leader,
+    TO_CHAR(SUM(CRM_NET_ARR_USD), 'FM$999,999,999') as total_arr,  -- $1,234,567
+    TO_CHAR(COUNT(*), 'FM999,999') as account_count  -- 1,234
+FROM accounts
+GROUP BY leader
 
 -- ✅ GOOD: Use raw numbers in WHERE, calculations, and GROUP BY
 WITH categorized AS (
@@ -338,7 +367,7 @@ ORDER BY arr_tier
 - [ ] **Opportunity Lists**: When query shows opportunities as ROWS (not aggregated), MUST include: `CRM_OPPORTUNITY_ID` + Total Booking/Pipeline column
 - [ ] **No Extra Columns**: Only include required columns + what user explicitly asked for (no product mix, percentages, or other analysis columns unless requested)
 - [ ] **Always Show Data (P0 CRITICAL)**: NEVER use phrases like "Full table shown above" unless you ACTUALLY displayed table data with `snow sql --format=table`. If no table was displayed, don't claim one was. Go straight to offering CSV export
-- [ ] **Calculation Accuracy**: NEVER format numbers (rounding, $ sign, K/M conversion) before calculations. Always calculate with raw numbers, format only in final SELECT for display
+- [ ] **Calculation Accuracy & Number Formatting**: NEVER format numbers before calculations. Always calculate with raw numbers, format only in final SELECT. ALWAYS use thousand separators (commas) for readability: `TO_CHAR(number, 'FM999,999,999')`
 
 **⚠️ P1 - SHOULD CHECK (Important)**
 - [ ] Validate Totals: TOTAL row matches actual count
