@@ -115,43 +115,48 @@ snow sql -q "YOUR_QUERY" --format=table
 
 **Be Concise:**
 - Don't narrate every step ("Now I'm checking...", "Let me search...")
-- **CRITICAL: "Show results" means SHOW THE TABLE with `snow sql --format=table`, not summarize it**
+- **CRITICAL: Always SHOW THE TABLE FIRST with `snow sql --format=table`**
 - Skip Snowflake connection warnings/status messages
-- Skip explanations - the TABLE is the output (for ≤25 rows, <8 columns)
 - If a query has an error, FIX IT SILENTLY and rerun - don't show the error or explain the fix
 
-**What "Be Concise" Means:**
-- ❌ DON'T: Skip showing the table and just provide bullet points
-- ✅ DO: Skip narration, but DISPLAY the actual table
-- ❌ DON'T: Summarize table contents ("Key insights: AMER has 1,234 accounts...")
-- ✅ DO: Show the actual ASCII table, then offer CSV export
+**Output Flow (Correct Order):**
+1. **SHOW THE TABLE** with `snow sql --format=table` (MANDATORY for ≤25 rows, <8 columns)
+2. **THEN** provide insights, summaries, key findings (this is helpful!)
+3. **THEN** offer CSV export
 
-**The table IS the output, not a summary of it.**
+**What "Be Concise" Means:**
+- ❌ DON'T: Skip showing the table (this was the problem!)
+- ✅ DO: Show table FIRST, then add insights/summaries
+- ❌ DON'T: Just provide bullet points WITHOUT showing the table
+- ✅ DO: Display table, THEN add context and insights
 
 ---
 
-## 🚨 CRITICAL: Show Tables, Don't Summarize Them
+## 🚨 CRITICAL: Always Show Tables First, Then Add Insights
 
-**You are misinterpreting "be concise" if you:**
-- Provide bullet points instead of showing the table
-- Summarize data ("Here are the key insights: ...")
-- Describe what the table would show without displaying it
+**The issue was OMITTING the table display, not the insights!**
 
-**Correct interpretation of "be concise":**
-- Skip narration like "Now I'm running the query..."
-- But ALWAYS display the actual table with `snow sql --format=table`
-- The table itself is concise - it shows data without explanation
+**You are misinterpreting the requirement if you:**
+- Skip showing the table entirely
+- Provide ONLY bullet points without showing the table first
+- Describe what the table contains without actually displaying it
 
-**Example of WRONG "concise" behavior:**
+**Correct behavior - Show table FIRST, then add value:**
+1. Display the actual table with `snow sql --format=table`
+2. Add insights, summaries, key findings (this is helpful!)
+3. Offer CSV export
+
+**Example of WRONG behavior (missing table):**
 ```
 ❌ User: "Show me AI penetration by leader"
 ❌ Agent: "Key insights from the data:
            • AMER has 37% penetration
-           • EMEA has 36% penetration
-           • Total is 34% penetration"
+           • EMEA has 36% penetration"
+           [NO TABLE SHOWN]
+           💾 Export to CSV?
 ```
 
-**Example of CORRECT "concise" behavior:**
+**Example of CORRECT behavior (table + insights):**
 ```
 ✅ User: "Show me AI penetration by leader"
 ✅ Agent: [Displays actual ASCII table with snow sql --format=table]
@@ -160,10 +165,22 @@ snow sql -q "YOUR_QUERY" --format=table
    +--------+-------+----------+---------------+
    | AMER   | 1,234 | 456      | 37%           |
    | EMEA   | 856   | 312      | 36%           |
-   ...
+   | APAC   | 445   | 156      | 35%           |
+   | LATAM  | 234   | 78       | 33%           |
+   | SMB    | 2,890 | 945      | 33%           |
+   | Digital| 1,504 | 468      | 31%           |
+   | TOTAL  | 6,157 | 2,103    | 34%           |
+   +--------+-------+----------+---------------+
+
+   **Key Insights:**
+   • AMER leads with 37% penetration
+   • Digital has lowest penetration at 31%
+   • Overall penetration is 34%
 
    💾 Export to CSV?
 ```
+
+**The correct output includes BOTH the table AND helpful insights.**
 
 ---
 
@@ -311,7 +328,7 @@ ORDER BY arr_tier
 ## ✅ Priority Checklist (Before Building Queries)
 
 **🚨 P0 - MUST CHECK (Mandatory)**
-- [ ] **SHOW TABLE, NOT SUMMARY (P0 CRITICAL)**: For small results (≤25 rows, <8 columns), you MUST display the actual ASCII table using `snow sql -q "..." --format=table`. DO NOT summarize with bullet points. "Be concise" means skip narration, NOT skip showing the table. The table IS the output
+- [ ] **SHOW TABLE FIRST (P0 CRITICAL)**: For small results (≤25 rows, <8 columns), you MUST display the actual ASCII table using `snow sql -q "..." --format=table` BEFORE providing insights. Flow: 1) Show table 2) Add insights/summaries 3) Offer CSV. Never skip showing the table
 - [ ] **--format=table FLAG (P0 CRITICAL)**: EVERY `snow sql` command MUST include `--format=table`. Command format: `snow sql -q "..." --format=table`. Without this flag, no table will display to user
 - [ ] Required Filters: `SERVICE_DATE = MAX(...)`, `AS_OF_DATE = 'Quarterly'`, `CRM_NET_ARR_USD > 0`
 - [ ] Standard Ordering: Auto-apply CASE statement (AMER→EMEA→APAC→LATAM→SMB→Digital)
