@@ -124,6 +124,96 @@ snow sql -q "SELECT ..." --format=table
 
 **✅ ALWAYS use `--format=table` for terminal display (≤50 rows)**
 
+## 🎯 Calculation Accuracy (P0 - CRITICAL)
+
+**RULE:** Calculate with RAW numbers, format ONLY for display in final SELECT.
+
+**Why:** Formatting numbers too early (rounding, adding $ signs, converting to K/M) causes inaccurate calculations.
+
+### ❌ WRONG - Formatting Before Calculations
+
+```sql
+-- ❌ BAD: Rounding before aggregation
+SELECT
+    region,
+    SUM(ROUND(CRM_NET_ARR_USD / 1000, 0)) as total_arr_thousands  -- WRONG!
+FROM accounts
+GROUP BY region
+
+-- ❌ BAD: Converting to string before calculations
+SELECT
+    region,
+    SUM(CONCAT('$', CRM_NET_ARR_USD / 1000, 'K'))  -- WRONG! Can't sum strings
+FROM accounts
+GROUP BY region
+
+-- ❌ BAD: Using formatted ARR bands in WHERE/GROUP BY
+SELECT
+    CASE WHEN CRM_NET_ARR_USD >= 1000000 THEN '$1M+' ELSE '<$1M' END as arr_band,
+    SUM(CRM_NET_ARR_USD) as total  -- This is OK
+FROM accounts
+WHERE arr_band = '$1M+'  -- ❌ WRONG! Can't reference alias in WHERE
+```
+
+### ✅ CORRECT - Calculate First, Format Last
+
+```sql
+-- ✅ GOOD: Aggregate with raw numbers, format in final SELECT
+SELECT
+    region,
+    ROUND(SUM(CRM_NET_ARR_USD) / 1000, 1) as total_arr_thousands,  -- Format AFTER SUM
+    CONCAT('$', ROUND(SUM(CRM_NET_ARR_USD) / 1000, 1), 'K') as formatted_arr
+FROM accounts
+GROUP BY region
+
+-- ✅ GOOD: Use raw numbers in WHERE, calculations, and GROUP BY
+WITH categorized AS (
+    SELECT
+        CRM_ACCOUNT_ID,
+        CRM_NET_ARR_USD,  -- Keep raw number
+        CASE
+            WHEN CRM_NET_ARR_USD >= 1000000 THEN 1
+            WHEN CRM_NET_ARR_USD >= 100000 THEN 2
+            ELSE 3
+        END as arr_tier  -- Use numeric tier for grouping
+    FROM accounts
+    WHERE CRM_NET_ARR_USD > 0  -- Raw number in WHERE
+)
+SELECT
+    CASE arr_tier
+        WHEN 1 THEN '$1M+'  -- Format only in final display
+        WHEN 2 THEN '$100K-$1M'
+        ELSE '<$100K'
+    END as arr_band,
+    COUNT(*) as accounts,
+    ROUND(SUM(CRM_NET_ARR_USD) / 1000000, 1) as total_arr_millions  -- Aggregate raw, format result
+FROM categorized
+GROUP BY arr_tier  -- Group by numeric value
+ORDER BY arr_tier
+```
+
+### Key Principles
+
+1. **Use raw numeric values in:**
+   - WHERE clauses
+   - GROUP BY clauses
+   - JOIN conditions
+   - SUM, AVG, COUNT calculations
+   - CASE statements for grouping
+
+2. **Apply formatting ONLY in:**
+   - Final SELECT column list (for display)
+   - After all calculations are complete
+
+3. **Work with integers when possible:**
+   - Use raw dollar amounts (integers) for calculations
+   - Divide and round only in final SELECT
+   - This prevents floating-point precision issues
+
+4. **Format for display, not for logic:**
+   - `$500K` is for humans to read
+   - `500000` is for computers to calculate
+
 ## ✅ Priority Checklist (Before Building Queries)
 
 **🚨 P0 - MUST CHECK (Mandatory)**
@@ -135,6 +225,7 @@ snow sql -q "SELECT ..." --format=table
 - [ ] **Opportunity Lists**: When query shows opportunities as ROWS (not aggregated), MUST include: `CRM_OPPORTUNITY_ID` + Total Booking/Pipeline column
 - [ ] **No Extra Columns**: Only include required columns + what user explicitly asked for (no product mix, percentages, or other analysis columns unless requested)
 - [ ] **Table Format Display**: For ≤50 rows, MUST use `snow sql --format=table` (readable ASCII table, not CSV or plain text)
+- [ ] **Calculation Accuracy**: NEVER format numbers (rounding, $ sign, K/M conversion) before calculations. Always calculate with raw numbers, format only in final SELECT for display
 
 **⚠️ P1 - SHOULD CHECK (Important)**
 - [ ] Validate Totals: TOTAL row matches actual count
@@ -368,7 +459,7 @@ When users ask to break down by "New Business" or "Expansion", use the `OPPORTUN
 SELECT
     OPPORTUNITY_TYPE,
     COUNT(DISTINCT CRM_OPPORTUNITY_ID) as deal_count,
-    SUM(PRODUCT_BOOKING_ARR_USD) as total_arr
+    ROUND(SUM(PRODUCT_BOOKING_ARR_USD) / 1000000, 1) as total_arr_millions
 FROM functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings
 WHERE OPPORTUNITY_STATUS = 'Closed'
   AND PRODUCT_BOOKING_ARR_USD > 0
@@ -378,12 +469,15 @@ WHERE OPPORTUNITY_STATUS = 'Closed'
   AND OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
   AND PRODUCT IN ('Ultimate', 'Ultimate_AR')  -- ✅ ADAPT: Use 'ES', 'Suite', 'QA', etc. based on user request
 GROUP BY OPPORTUNITY_TYPE
-ORDER BY OPPORTUNITY_TYPE DESC
+ORDER BY OPPORTUNITY_TYPE DESC  -- New Business first (N comes before E alphabetically)
 
 -- Example: Total bookings (all products)
 SELECT
-    REGION,
-    SUM(PRODUCT_BOOKING_ARR_USD) as total_bookings
+    CASE
+      WHEN REGION = 'NA' THEN 'AMER'
+      ELSE REGION
+    END as region,
+    ROUND(SUM(PRODUCT_BOOKING_ARR_USD) / 1000000, 1) as total_bookings_millions
 FROM functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings
 WHERE OPPORTUNITY_STATUS = 'Closed'
   AND PRODUCT_BOOKING_ARR_USD > 0
@@ -392,7 +486,15 @@ WHERE OPPORTUNITY_STATUS = 'Closed'
   AND DATE_LABEL = 'today'
   AND OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
   AND PRODUCT IN ('Total Booking')  -- Use for "total" or "all products"
-GROUP BY REGION
+GROUP BY CASE WHEN REGION = 'NA' THEN 'AMER' ELSE REGION END
+ORDER BY  -- Standard region ordering
+  CASE
+    WHEN REGION IN ('AMER', 'NA') THEN 1
+    WHEN REGION = 'EMEA' THEN 2
+    WHEN REGION = 'APAC' THEN 3
+    WHEN REGION = 'LATAM' THEN 4
+    ELSE 99
+  END
 ```
 
 **Common Use Cases:**
@@ -847,9 +949,12 @@ END
 WITH customers AS (
     SELECT
         CRM_ACCOUNT_ID,
-        CASE WHEN PRO_FORMA_MARKET_SEGMENT IN ('SMB', 'Digital')
-             THEN PRO_FORMA_MARKET_SEGMENT
-             ELSE COALESCE(PRO_FORMA_REGION, 'Unknown')
+        CASE
+          WHEN PRO_FORMA_MARKET_SEGMENT IN ('SMB', 'Digital')
+            THEN PRO_FORMA_MARKET_SEGMENT
+          WHEN PRO_FORMA_REGION = 'NA'
+            THEN 'AMER'
+          ELSE COALESCE(PRO_FORMA_REGION, 'Unknown')
         END AS leader
     FROM PRESENTATION.CUSTOMER_EXPERIENCE.CUSTOMER_SUCCESS__CS_RESET_DASHBOARD
     WHERE SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM PRESENTATION.CUSTOMER_EXPERIENCE.CUSTOMER_SUCCESS__CS_RESET_DASHBOARD)
@@ -901,7 +1006,7 @@ WITH customers AS (
     WHERE SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM PRESENTATION.CUSTOMER_EXPERIENCE.CUSTOMER_SUCCESS__CS_RESET_DASHBOARD)
         AND AS_OF_DATE = 'Quarterly'
         AND CRM_NET_ARR_USD > 0
-        AND PRO_FORMA_REGION = 'AMER'  -- Filter for specific region
+        AND PRO_FORMA_REGION IN ('AMER', 'NA')  -- Filter for AMER (handle NA = AMER)
         AND PRO_FORMA_MARKET_SEGMENT NOT IN ('SMB', 'Digital')
 ),
 
@@ -1512,11 +1617,25 @@ date +%s.%N > /tmp/claude_query_start_time
 # Use Snowflake CLI directly for display (avoids UI collapse)
 /Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "
 SELECT
-    region,
-    COUNT(*) as accounts
+    CASE
+      WHEN PRO_FORMA_REGION = 'NA' THEN 'AMER'
+      ELSE PRO_FORMA_REGION
+    END as region,
+    COUNT(*) as accounts,
+    ROUND(SUM(CRM_NET_ARR_USD) / 1000000, 1) as arr_millions
 FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD
 WHERE SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD)
-GROUP BY region
+  AND AS_OF_DATE = 'Quarterly'
+  AND CRM_NET_ARR_USD > 0
+GROUP BY CASE WHEN PRO_FORMA_REGION = 'NA' THEN 'AMER' ELSE PRO_FORMA_REGION END
+ORDER BY
+  CASE
+    WHEN PRO_FORMA_REGION IN ('AMER', 'NA') THEN 1
+    WHEN PRO_FORMA_REGION = 'EMEA' THEN 2
+    WHEN PRO_FORMA_REGION = 'APAC' THEN 3
+    WHEN PRO_FORMA_REGION = 'LATAM' THEN 4
+    ELSE 99
+  END
 " --format=table
 
 # Show timing (in SAME Bash call)
