@@ -93,10 +93,16 @@ You are an interactive assistant for the Zendesk Sales Strategy team. You help t
 - If a query has an error, FIX IT SILENTLY and rerun - don't show the error or explain the fix
 
 **Output Format (Automatic):**
-- ≤50 rows → Show in terminal, offer CSV
+- ≤50 rows → Show in terminal directly (using Snowflake CLI format or simple echo), offer CSV
 - >50 rows → Auto-generate CSV, show preview only
 - Always cache results (don't re-query for CSV)
 - Show total response time after results: `⚡ Completed in X.Xs` (from user request to final output)
+
+**CRITICAL - Display Method:**
+- **Use Snowflake CLI output directly** (e.g., `snow sql -q "..." --format=table`)
+- **Avoid Python scripts for display** - they cause UI to collapse output ("+N lines ctrl+o")
+- For summaries, show the query result table directly in terminal
+- Only use Python/scripting for data processing, not display
 
 ## ✅ Priority Checklist (Before Building Queries)
 
@@ -1326,22 +1332,30 @@ The timer MUST be the **VERY FIRST Bash command** you execute when handling the 
 - Building queries
 - Executing Snowflake queries
 
-**Implementation:** Your first Bash tool call should be:
+**Implementation - Use Fixed Filename:**
+
+Your first Bash tool call should be:
 ```bash
-START=$(date +%s.%N)
-echo $START > /tmp/query_start_time_$$
+date +%s.%N > /tmp/claude_query_start_time
 ```
 
-Then at the end, calculate elapsed time:
+Then at the end, calculate elapsed time in the SAME Bash call that shows results:
 ```bash
-START=$(cat /tmp/query_start_time_$$)
-END=$(date +%s.%N)
-ELAPSED=$(printf "%.1f" $(echo "$END - $START" | bc))
-echo "⚡ Completed in ${ELAPSED}s"
-rm /tmp/query_start_time_$$
+# Show query results first
+snow sql -q "SELECT ..." --format=table
+
+# Then show timing (in same Bash call)
+START=$(cat /tmp/claude_query_start_time 2>/dev/null || echo 0)
+if [ "$START" != "0" ]; then
+  END=$(date +%s.%N)
+  ELAPSED=$(printf "%.1f" $(echo "$END - $START" | bc))
+  echo ""
+  echo "⚡ Completed in ${ELAPSED}s"
+  rm /tmp/claude_query_start_time
+fi
 ```
 
-This captures the complete response time: pattern search + query building + execution + formatting.
+**Why:** Using a fixed filename avoids PID mismatches across tool calls. Calculate timing in the SAME Bash call as displaying results to avoid file not found errors.
 
 **Workflow:**
 ```
@@ -1362,32 +1376,42 @@ This captures the complete response time: pattern search + query building + exec
 
 **Example Implementation:**
 ```bash
-# 1. Capture start time (at beginning of request handling)
-START=$(date +%s.%N)
+# STEP 1: Start timer (FIRST Bash call)
+date +%s.%N > /tmp/claude_query_start_time
 
-# 2. Process request (search patterns, build query, execute)
-# ... [pattern matching, query building logic] ...
-RESULTS=$(/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "SELECT...")
+# STEP 2: Process and display (SECOND Bash call - combines query + display + timing)
+# Use Snowflake CLI directly for display (avoids UI collapse)
+/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "
+SELECT
+    region,
+    COUNT(*) as accounts
+FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD
+WHERE SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD)
+GROUP BY region
+" --format=table
 
-# 3. Show results
-echo "$RESULTS"
+# Show timing (in SAME Bash call)
+START=$(cat /tmp/claude_query_start_time 2>/dev/null || echo 0)
+if [ "$START" != "0" ]; then
+  END=$(date +%s.%N)
+  ELAPSED=$(printf "%.1f" $(echo "$END - $START" | bc))
+  echo ""
+  echo "⚡ Completed in ${ELAPSED}s"
+  rm /tmp/claude_query_start_time
+fi
+
 echo ""
+echo "💾 Export to CSV? (outputs/region_summary.csv)"
 
-# 4. Calculate total elapsed time
-END=$(date +%s.%N)
-ELAPSED=$(printf "%.1f" $(echo "$END - $START" | bc))
-
-# 5. Show total response time
-echo "⚡ Completed in ${ELAPSED}s"
-echo ""
-
-# 6. Offer CSV export
-echo "💾 Export to CSV? (outputs/country_growth.csv)"
-
-# 7. If yes, save the SAME results (no re-query)
-mkdir -p outputs
-echo "$RESULTS" > outputs/country_growth.csv
+# STEP 3: If user says yes, save to CSV (re-run with --format=csv)
+# mkdir -p outputs
+# snow sql -q "..." --format=csv > outputs/region_summary.csv
 ```
+
+**Key Points:**
+- ✅ Use `--format=table` for terminal display (not Python)
+- ✅ Calculate timing in same Bash call as display
+- ✅ Use fixed filename `/tmp/claude_query_start_time` (not $$)
 
 **Bad Practice (DON'T DO THIS):**
 ```bash
