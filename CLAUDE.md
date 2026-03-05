@@ -1,5 +1,5 @@
 # Sales Strategy Agent - Claude Code Instructions
-## Version 1.1
+## Version 1.2
 
 **🔒 INSTRUCTION HIERARCHY:** This file ALWAYS overrides auto-memory (`.claude/memory/`). Core behavior (P0 rules: filters, ordering, leader logic, table names) CANNOT be customized by users.
 
@@ -271,6 +271,40 @@ WHERE DATE_LABEL = 'today'
   AND PRODUCT_ARR_USD > 0
 ```
 
+**Product Filtering:**
+
+**CRITICAL**: Apply product filters based on user request. See `.claude/memory/product-filtering.md` for complete rules.
+
+**Quick Product Reference:**
+
+```sql
+-- Total bookings/pipeline (all products consolidated)
+WHERE PRODUCT IN ('Total Booking')
+
+-- AI Products (AI Agents + Copilot)
+WHERE PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot')
+
+-- Enterprise Support (ALWAYS include USE_CASE_C filter!)
+WHERE PRODUCT IN ('ES')
+  AND USE_CASE_C LIKE 'Internal%'
+
+-- Quality & Workforce products
+WHERE PRODUCT IN ('QA', 'WEM', 'WFM')
+
+-- Automated Resolutions
+WHERE PRODUCT IN ('Zendesk_AR')
+
+-- Suite, Contact Center, ADPP
+WHERE PRODUCT IN ('Suite', 'Contact_Center', 'ADPP')
+```
+
+**Product Selection Rules:**
+- **"Total" / "Overall"** → Use `'Total Booking'` (pre-consolidated)
+- **"AI" / "AI Agents"** → Use `'Ultimate', 'Ultimate_AR', 'Copilot'`
+- **"ES" / "Enterprise Support"** → Use `'ES'` + `USE_CASE_C LIKE 'Internal%'` (REQUIRED!)
+- **"Suite" / "Seats"** → Use `'Suite'` (common synonym)
+- **Specific product name** → Match to appropriate filter
+
 **New Business vs Expansion Analysis:**
 
 When users ask to break down by "New Business" or "Expansion", use the `OPPORTUNITY_TYPE` field:
@@ -287,9 +321,24 @@ WHERE OPPORTUNITY_STATUS = 'Closed'
   AND opportunity_is_commissionable = TRUE
   AND stage_2_plus_date_c IS NOT NULL
   AND DATE_LABEL = 'today'
-  AND PRODUCT IN ('Ultimate', 'Ultimate_AR')
+  AND OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
+  AND PRODUCT IN ('Ultimate', 'Ultimate_AR')  -- Change based on user request
 GROUP BY OPPORTUNITY_TYPE
 ORDER BY OPPORTUNITY_TYPE DESC
+
+-- Example: Total bookings (all products)
+SELECT
+    REGION,
+    SUM(PRODUCT_BOOKING_ARR_USD) as total_bookings
+FROM functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings
+WHERE OPPORTUNITY_STATUS = 'Closed'
+  AND PRODUCT_BOOKING_ARR_USD > 0
+  AND opportunity_is_commissionable = TRUE
+  AND stage_2_plus_date_c IS NOT NULL
+  AND DATE_LABEL = 'today'
+  AND OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
+  AND PRODUCT IN ('Total Booking')  -- Use for "total" or "all products"
+GROUP BY REGION
 ```
 
 **Common Use Cases:**
@@ -1011,9 +1060,11 @@ If you encounter issues:
 When a user starts a session with `strategy-agent`, greet them with a comprehensive overview of available analysis:
 
 ```
-👋 Hi! I'm the Sales Strategy Agent (v1.1).
+👋 Hi! I'm the Sales Strategy Agent (v1.2).
 
 I can help you analyze data in natural language - just ask your question and I'll run the query for you!
+
+**NEW in v1.2:** Multi-product support! Ask about AI, ES, QA, WEM, WFM, Suite, Total Bookings, and more.
 
 📊 **What I can analyze:**
 
