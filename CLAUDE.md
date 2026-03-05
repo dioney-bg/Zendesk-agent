@@ -225,7 +225,7 @@ ORDER BY arr_tier
 - [ ] **Opportunity Lists**: When query shows opportunities as ROWS (not aggregated), MUST include: `CRM_OPPORTUNITY_ID` + Total Booking/Pipeline column
 - [ ] **No Extra Columns**: Only include required columns + what user explicitly asked for (no product mix, percentages, or other analysis columns unless requested)
 - [ ] **Table Format Display**: For ≤25 rows AND <8 columns, MUST use `snow sql --format=table` (readable ASCII table, not CSV or plain text)
-- [ ] **Always Show Data**: NEVER describe table contents without showing actual data first. Always display preview (first 5 rows) before generating CSV for large datasets
+- [ ] **Always Show Data (P0 CRITICAL)**: NEVER use phrases like "Full table shown above", "The table above shows", "Here is the table" unless you ACTUALLY displayed table data using `snow sql --format=table` in a previous tool call. If no table was displayed, don't claim one was. Go straight to offering CSV export
 - [ ] **Calculation Accuracy**: NEVER format numbers (rounding, $ sign, K/M conversion) before calculations. Always calculate with raw numbers, format only in final SELECT for display
 
 **⚠️ P1 - SHOULD CHECK (Important)**
@@ -1772,17 +1772,25 @@ This section **extends** the CSV export workflow (see "CSV Export - Always Offer
 
 ### 🚨 P0 RULE: ALWAYS Show Data First
 
-**NEVER describe table contents without showing actual data:**
+**NEVER claim you showed a table if you didn't actually display it:**
 
-❌ **WRONG:**
+❌ **WRONG - Claiming table was shown when it wasn't:**
+```
+"Here are the top 3 deals for each leader:"
+(Full table shown above with 18 deals - 3 per leader)
+💾 Export to CSV?
+```
+**Problem:** No table was actually displayed! Don't claim it was.
+
+❌ **WRONG - Describing table without showing it:**
 ```
 "The table shows top 3 deals for each leader with columns: Leader, Opportunity ID, Account Name..."
 💾 Export to CSV?
 ```
 
-✅ **CORRECT:**
+✅ **CORRECT - When table IS displayed:**
 ```
-Preview (first 15 rows):
+Preview (first 5 rows):
 +--------+---------------+------------------+----------+
 | Leader | Opportunity   | Account          | ARR      |
 +--------+---------------+------------------+----------+
@@ -1790,18 +1798,25 @@ Preview (first 15 rows):
 | AMER   | OPP-67890     | Tech Inc         | $1.8M    |
 | AMER   | OPP-34567     | Global Co        | $1.2M    |
 | EMEA   | OPP-98765     | Euro Ltd         | $3.1M    |
-...
+| EMEA   | OPP-11111     | Tech GmbH        | $2.8M    |
 
 ✅ Full list in CSV (187 total rows)
 💾 Saved to: outputs/top_deals_by_leader.csv
 ```
 
+✅ **CORRECT - When table CANNOT be displayed (go straight to CSV):**
+```
+Generated 18 deals (3 per leader).
+
+💾 Results saved to: outputs/top_deals_by_leader.csv
+```
+
 **Key Rules:**
-1. ✅ **Always show preview** (5 rows for large datasets) before generating CSV
-2. ✅ **Display with --format=table** for readability
-3. ✅ **Then** notify about CSV and full row count
-4. ❌ **NEVER** say "The table above shows..." unless you actually displayed a table
-5. ❌ **NEVER** describe columns without showing data
+1. ✅ **If you displayed a table** → OK to say "preview shown above" or "table above"
+2. ❌ **If you did NOT display a table** → Don't claim you did! Just offer CSV
+3. ✅ **Always try to show preview** with `snow sql --format=table LIMIT 5`
+4. ✅ **If preview fails or can't be shown** → Go straight to CSV, don't fake it
+5. ❌ **NEVER** use phrases like "Full table shown above", "The table above", "Here is the table" unless `--format=table` output appeared in your previous Bash tool result
 
 **Summary/Aggregated Views** (≤25 rows AND <8 columns) → Show in terminal, offer CSV
 - Examples: "AI penetration by leader", "Top 10 countries", "Account count by segment"
