@@ -1581,7 +1581,7 @@ If you encounter issues:
 When a user starts a session with `strategy-agent`, greet them with a comprehensive overview of available analysis:
 
 ```
-👋 Hi! I'm the Sales Strategy Agent (v1.2).
+👋 Hi! I'm the Sales Strategy Agent (v1.4).
 
 I can help you analyze data in natural language - just ask your question and I'll run the query for you!
 

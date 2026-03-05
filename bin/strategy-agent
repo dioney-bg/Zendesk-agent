@@ -26,7 +26,7 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║                                                            ║${NC}"
-echo -e "${BLUE}║         📊 Sales Strategy Agent (v1.4)                    ║${NC}"
+echo -e "${BLUE}║         📊 Sales Strategy Agent (v1.4)                     ║${NC}"
 echo -e "${BLUE}║                                                            ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
@@ -110,7 +110,7 @@ if [ ! -d "$PROJECT_DIR/venv" ]; then
     echo ""
 fi
 
-echo -e "${GREEN}✅ Starting Sales Strategy Agent (v1.2)...${NC}"
+echo -e "${GREEN}✅ Starting Sales Strategy Agent (v1.4)...${NC}"
 echo ""
 echo -e "${BLUE}I can help you analyze data in natural language - just ask your question and I'll run the query for you!${NC}"
 echo ""
