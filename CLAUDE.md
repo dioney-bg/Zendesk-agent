@@ -108,31 +108,42 @@ Only generate CSV instead if:
 - Always cache results (don't re-query for CSV)
 - Show total response time after results: `⚡ Completed in X.Xs` (from user request to final output)
 
-**CRITICAL - Display Method (P0 - MANDATORY):**
+**🚨 CRITICAL - Display Method (P0 - MANDATORY) 🚨**
 
-**For terminal display (≤25 rows AND <8 columns), you MUST use Snowflake CLI with `--format=table`:**
+**EVERY `snow sql` command MUST include `--format=table` when displaying results**
 
+This is NOT optional. Without `--format=table`, the agent will get raw output and the user will see nothing.
+
+**❌ WRONG - Missing --format=table (THIS BREAKS DISPLAY!):**
 ```bash
-snow sql -q "SELECT ..." --format=table
+# User sees nothing - output is raw text that agent summarizes instead of showing
+snow sql -q "SELECT leader, COUNT(*) FROM ... GROUP BY leader"
 ```
 
-**This outputs a nicely formatted ASCII table that is easy to read:**
+**✅ CORRECT - Always include --format=table:**
+```bash
+# User sees proper ASCII table
+snow sql -q "SELECT leader, COUNT(*) FROM ... GROUP BY leader" --format=table
 ```
-+----------------+-------------+----------+
-| ACCOUNT_NAME   | OPP_ID      | ARR      |
-+----------------+-------------+----------+
-| Acme Corp      | OPP-12345   | $500K    |
-| Tech Inc       | OPP-67890   | $350K    |
-+----------------+-------------+----------+
+
+**Example output with --format=table:**
+```
++--------+-------------+----------+
+| Leader | Accounts    | ARR      |
++--------+-------------+----------+
+| AMER   | 1,234       | $125.5M  |
+| EMEA   | 856         | $89.2M   |
+| APAC   | 445         | $45.3M   |
++--------+-------------+----------+
 ```
 
 **❌ DO NOT:**
-- Use `--format=csv` for terminal display (hard to read)
-- Use Python scripts for display (causes UI collapse)
-- Use plain text output without formatting
-- Echo raw query results without table formatting
+- Run `snow sql -q "..."` without `--format=table` (NEVER!)
+- Use `--format=csv` for terminal display
+- Use Python scripts for display
+- Forget the `--format=table` flag
 
-**✅ ALWAYS use `--format=table` for terminal display (≤50 rows)**
+**✅ MANDATORY: Every snow sql command MUST have --format=table**
 
 ## 🎯 Calculation Accuracy (P0 - CRITICAL)
 
@@ -227,6 +238,7 @@ ORDER BY arr_tier
 ## ✅ Priority Checklist (Before Building Queries)
 
 **🚨 P0 - MUST CHECK (Mandatory)**
+- [ ] **--format=table FLAG (P0 CRITICAL)**: EVERY `snow sql` command MUST include `--format=table`. Command format: `snow sql -q "..." --format=table`. Without this flag, no table will display to user
 - [ ] Required Filters: `SERVICE_DATE = MAX(...)`, `AS_OF_DATE = 'Quarterly'`, `CRM_NET_ARR_USD > 0`
 - [ ] Standard Ordering: Auto-apply CASE statement (AMER→EMEA→APAC→LATAM→SMB→Digital)
 - [ ] Leader Filtering: Regional queries EXCLUDE SMB/Digital
@@ -234,8 +246,7 @@ ORDER BY arr_tier
 - [ ] TOTAL Row: Include with `UNION ALL`
 - [ ] **Opportunity Lists**: When query shows opportunities as ROWS (not aggregated), MUST include: `CRM_OPPORTUNITY_ID` + Total Booking/Pipeline column
 - [ ] **No Extra Columns**: Only include required columns + what user explicitly asked for (no product mix, percentages, or other analysis columns unless requested)
-- [ ] **Table Format Display (P0 DEFAULT)**: ALWAYS use `snow sql --format=table` for query results. Only skip and use CSV mode if result has >25 rows OR ≥8 columns. Default is SHOW TABLE, not CSV
-- [ ] **Always Show Data (P0 CRITICAL)**: NEVER use phrases like "Full table shown above", "The table above shows", "Here is the table" unless you ACTUALLY displayed table data using `snow sql --format=table` in a previous tool call. If no table was displayed, don't claim one was. Go straight to offering CSV export
+- [ ] **Always Show Data (P0 CRITICAL)**: NEVER use phrases like "Full table shown above" unless you ACTUALLY displayed table data with `snow sql --format=table`. If no table was displayed, don't claim one was. Go straight to offering CSV export
 - [ ] **Calculation Accuracy**: NEVER format numbers (rounding, $ sign, K/M conversion) before calculations. Always calculate with raw numbers, format only in final SELECT for display
 
 **⚠️ P1 - SHOULD CHECK (Important)**
@@ -1633,7 +1644,7 @@ fi
 date +%s.%N > /tmp/claude_query_start_time
 
 # STEP 2: Process and display (SECOND Bash call - combines query + display + timing)
-# Use Snowflake CLI directly for display (avoids UI collapse)
+# CRITICAL: Must include --format=table at the end
 /Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "
 SELECT
     CASE
