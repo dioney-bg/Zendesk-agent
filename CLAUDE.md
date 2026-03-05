@@ -341,7 +341,8 @@ WHERE PRODUCT IN ('Suite', 'Contact_Center', 'ADPP')
 When users ask to break down by "New Business" or "Expansion", use the `OPPORTUNITY_TYPE` field:
 
 ```sql
--- Example: AI Agent wins by opportunity type
+-- Example: Breakdown by opportunity type (AGGREGATED - not individual opportunities)
+-- This example shows AI products, but adapt product filter to match user request
 SELECT
     OPPORTUNITY_TYPE,
     COUNT(DISTINCT CRM_OPPORTUNITY_ID) as deal_count,
@@ -353,7 +354,7 @@ WHERE OPPORTUNITY_STATUS = 'Closed'
   AND stage_2_plus_date_c IS NOT NULL
   AND DATE_LABEL = 'today'
   AND OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
-  AND PRODUCT IN ('Ultimate', 'Ultimate_AR')  -- Change based on user request
+  AND PRODUCT IN ('Ultimate', 'Ultimate_AR')  -- ✅ ADAPT: Use 'ES', 'Suite', 'QA', etc. based on user request
 GROUP BY OPPORTUNITY_TYPE
 ORDER BY OPPORTUNITY_TYPE DESC
 
@@ -380,6 +381,13 @@ GROUP BY REGION
 
 **Opportunity-Level Output Guidelines (P0 - MANDATORY):**
 
+**🔄 APPLIES TO ALL PRODUCTS:** This rule works for ANY product user asks for:
+- AI products: Ultimate, Ultimate_AR, Copilot
+- Employee Service: ES
+- Quality & Workforce: QA, WEM, WFM
+- Other products: Suite, Zendesk_AR, Contact_Center, ADPP
+- The pattern is the same - only the product filter changes
+
 **CRITICAL TRIGGER:** When your query shows **opportunities as individual rows** (not aggregated/summarized), you MUST include:
 
 1. **CRM_OPPORTUNITY_ID** - For tracking and reference
@@ -401,46 +409,87 @@ GROUP BY REGION
 
 **Rule:** If each row represents a SINGLE opportunity → Include ID + Total value
 
-**✅ CORRECT Example - Copilot opportunities:**
+**✅ CORRECT Pattern - Works for ANY product:**
+
+**CRITICAL:** This pattern applies to ALL products: AI (Ultimate/Copilot), ES, QA, WEM, WFM, Suite, Zendesk_AR, etc.
+
 ```sql
--- Get Copilot opportunities with Total Booking
+-- Generic pattern: Replace {PRODUCT_NAME} and {PRODUCT_FILTER} with actual product
 SELECT
     p.CRM_OPPORTUNITY_ID,                    -- ✅ REQUIRED: Opportunity ID
     p.CRM_ACCOUNT_NAME,
     p.OPP_NAME,
     p.CLOSEDATE,
     p.REGION,
-    p.PRODUCT_BOOKING_ARR_USD as copilot_arr,  -- Copilot ARR (what user asked for)
-    t.PRODUCT_BOOKING_ARR_USD as total_booking  -- ✅ REQUIRED: Total from 'Total Booking' product
+    p.PRODUCT_BOOKING_ARR_USD as {product}_arr,  -- Specific product ARR (what user asked for)
+    t.PRODUCT_BOOKING_ARR_USD as total_booking   -- ✅ REQUIRED: Total from 'Total Booking' product
 FROM gtmsi_consolidated_pipeline_bookings p
--- Join to get Total Booking for this opportunity
+-- ✅ REQUIRED: Join to get Total Booking
 LEFT JOIN gtmsi_consolidated_pipeline_bookings t
   ON p.CRM_OPPORTUNITY_ID = t.CRM_OPPORTUNITY_ID
   AND t.PRODUCT = 'Total Booking'
   AND t.DATE_LABEL = 'today'
 WHERE p.OPPORTUNITY_STATUS = 'Closed'
-  AND p.PRODUCT = 'Copilot'
-  AND p.PRODUCT_BOOKING_ARR_USD > 0
+  AND p.DATE_LABEL = 'today'
   AND p.opportunity_is_commissionable = TRUE
   AND p.stage_2_plus_date_c IS NOT NULL
-  AND p.DATE_LABEL = 'today'
   AND p.OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
+  AND p.PRODUCT_BOOKING_ARR_USD > 0
+  AND {PRODUCT_FILTER}  -- ✅ Apply product-specific filter (see examples below)
 ```
 
-**❌ WRONG Example - Missing ID and Total:**
+**Product Filter Examples (adapt based on user request):**
+
+```sql
+-- For Copilot:
+AND p.PRODUCT = 'Copilot'
+
+-- For ES (Employee Service):
+AND p.PRODUCT = 'ES'
+AND p.USE_CASE_C LIKE 'Internal%'  -- ✅ REQUIRED for ES
+
+-- For QA, WEM, or WFM:
+AND p.PRODUCT IN ('QA', 'WEM', 'WFM')  -- Or specific one user asked for
+
+-- For Suite:
+AND p.PRODUCT = 'Suite'
+
+-- For Zendesk_AR (Automated Resolutions):
+AND p.PRODUCT = 'Zendesk_AR'
+
+-- For AI products (multiple):
+AND p.PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot')
+```
+
+**❌ WRONG Example - Product-specific but missing ID and Total:**
 ```sql
 SELECT
     CRM_ACCOUNT_NAME,
     OPP_NAME,
-    PRODUCT_BOOKING_ARR_USD as copilot_arr
+    PRODUCT_BOOKING_ARR_USD as es_arr
 FROM gtmsi_consolidated_pipeline_bookings
-WHERE PRODUCT = 'Copilot'
+WHERE PRODUCT = 'ES'
+  AND USE_CASE_C LIKE 'Internal%'
   -- ❌ MISSING: CRM_OPPORTUNITY_ID column
   -- ❌ MISSING: Join to PRODUCT = 'Total Booking' for total_booking column
 ...
 ```
 
-**Why:** Users need opportunity ID for tracking and total value for context, even when analyzing specific products. This applies to ALL opportunity lists, regardless of which product is being analyzed.
+**Why:** Users need opportunity ID for tracking and total value for context, even when analyzing specific products. This applies to ALL opportunity lists (AI, ES, QA, WEM, WFM, Suite, Zendesk_AR, etc.), regardless of which product is being analyzed.
+
+**🔑 Key Adaptation Rule:**
+
+When user asks: "Show me {PRODUCT} opportunities..."
+
+1. **Keep the pattern** (CRM_OPPORTUNITY_ID + Total Booking join)
+2. **Change the product filter** to match user request:
+   - "ES opportunities" → `p.PRODUCT = 'ES' AND p.USE_CASE_C LIKE 'Internal%'`
+   - "Suite opportunities" → `p.PRODUCT = 'Suite'`
+   - "QA opportunities" → `p.PRODUCT = 'QA'`
+   - "AI opportunities" → `p.PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot')`
+3. **Keep Total Booking join unchanged** (always same)
+
+**The pattern is universal - only the WHERE clause product filter changes.**
 
 **Adding Sales Rep and Manager Information:**
 
