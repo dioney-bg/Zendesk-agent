@@ -1,5 +1,28 @@
 # Test Environment Setup Guide
 
+## ⚡ Quick Reference Card
+
+**Status:** ✅ Test environment is SET UP and ready to use
+
+**Commands:**
+```bash
+strategy-agent        # Production (blue banner)
+strategy-agent-test   # Test (yellow banner)
+```
+
+**Locations:**
+```bash
+~/Zendesk-agent/       # Production (main branch)
+~/Zendesk-agent-test/  # Test (test-vX.X branch)
+```
+
+**Daily Workflow:**
+1. Edit files in `~/Zendesk-agent-test/`
+2. Test with `strategy-agent-test`
+3. When ready: `cd ~/Zendesk-agent && git merge test-vX.X && git push`
+
+---
+
 ## 📊 Test Strategy-Agent: Options & Recommendations
 
 This guide covers how to set up a test environment for the Sales Strategy Agent.
@@ -157,49 +180,71 @@ git checkout -b test-main
 
 ## 🚀 Implementation Guide
 
-### Initial Setup (One Time)
+### Initial Setup (✅ COMPLETED)
 
 ```bash
 # 1. Create test directory
 cd ~/
 git clone Zendesk-agent Zendesk-agent-test
 
-# 2. Create test branch
+# 2. Create test branch (replace X.X with next version number)
 cd Zendesk-agent-test
-git checkout -b test-v1.3
+git checkout -b test-vX.X
 
 # 3. Modify launcher to show TEST MODE
-nano bin/strategy-agent
-# Change banner to show "TEST MODE - v1.3-test"
+# Change banner color to YELLOW and add "🧪 TEST MODE"
+# Edit: bin/strategy-agent
 
-# 4. Create test command (optional)
+# 4. Commit the banner change
+git add bin/strategy-agent
+git commit -m "TEST: Update launcher banner to show TEST MODE"
+
+# 5. Create test command alias
 echo 'alias strategy-agent-test="cd ~/Zendesk-agent-test && bin/strategy-agent"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-### Regular Workflow
+**Current Setup:**
+- ✅ Production: `~/Zendesk-agent/` (main branch)
+- ✅ Test: `~/Zendesk-agent-test/` (test-v1.5 branch)
+- ✅ Alias: `strategy-agent-test` command available
 
+### Regular Workflow (Daily Use)
+
+**1. Make Changes in Test:**
 ```bash
-# Development cycle
 cd ~/Zendesk-agent-test
-git checkout test-v1.3
 
-# Make changes to CLAUDE.md, queries, etc.
-# Test changes
-strategy-agent-test  # Uses test auto-memory
+# Make changes to CLAUDE.md, MEMORY.md, queries, etc.
+# Save and commit
+git add -A
+git commit -m "TEST: Description of changes"
+```
 
-# Test thoroughly
-# Run example queries
-# Verify behavior
+**2. Test Your Changes:**
+```bash
+strategy-agent-test
+# Agent opens with yellow banner "🧪 TEST MODE"
+# Run queries, verify behavior
+# Test thoroughly before promoting
+```
 
-# When ready to promote
-cd ~/Zendesk-agent  # Production repo
+**3. Promote to Production (when ready):**
+```bash
+cd ~/Zendesk-agent
 git checkout main
-git merge test-v1.3
+git merge test-vX.X  # Replace X.X with your test branch name
 git push origin main
 
-# Team members update
-# They run: cd ~/Zendesk-agent && git pull
+# Team members auto-update next time they run strategy-agent
+```
+
+**4. Start New Test Cycle (optional):**
+```bash
+cd ~/Zendesk-agent-test
+git checkout main
+git pull origin main  # Sync with production
+git checkout -b test-vY.Y  # New test branch for next version
 ```
 
 ### What Gets Isolated
@@ -250,3 +295,57 @@ git checkout -b test-v1.3
 - ✅ Easy promotion (git merge)
 
 **Total cost:** ~200MB disk space for test directory
+
+---
+
+## 📝 Common Scenarios (Quick Copy-Paste)
+
+### Scenario 1: Test a Quick Fix
+```bash
+cd ~/Zendesk-agent-test
+# Edit the file
+git add -A && git commit -m "TEST: Quick fix for X"
+strategy-agent-test
+# Test it
+# If good: cd ~/Zendesk-agent && git merge test-vX.X && git push
+```
+
+### Scenario 2: Test Major Feature (Take Your Time)
+```bash
+cd ~/Zendesk-agent-test
+# Make multiple changes over days/weeks
+git add -A && git commit -m "TEST: Work in progress"
+strategy-agent-test
+# Keep testing until perfect
+# When ready: cd ~/Zendesk-agent && git merge test-vX.X && git push
+```
+
+### Scenario 3: Abandon Test and Start Fresh
+```bash
+cd ~/Zendesk-agent-test
+git checkout main
+git pull origin main  # Sync with production
+git branch -D test-vX.X  # Delete old test branch
+git checkout -b test-vY.Y  # Create new test branch
+```
+
+### Scenario 4: Check Which Environment You're In
+```bash
+cd ~/Zendesk-agent-test && git branch  # Shows * test-vX.X
+cd ~/Zendesk-agent && git branch       # Shows * main
+```
+
+### Scenario 5: See What Changed in Test
+```bash
+cd ~/Zendesk-agent-test
+git diff main  # Shows all changes vs production
+```
+
+---
+
+## 🎯 Remember
+
+- **Blue banner** = Production (affects team)
+- **Yellow banner** = Test (only affects you)
+- **Always test before merging** to main
+- **Different directories = separate auto-memory** (automatic isolation)
