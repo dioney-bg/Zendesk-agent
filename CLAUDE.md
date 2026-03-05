@@ -225,6 +225,7 @@ ORDER BY arr_tier
 - [ ] **Opportunity Lists**: When query shows opportunities as ROWS (not aggregated), MUST include: `CRM_OPPORTUNITY_ID` + Total Booking/Pipeline column
 - [ ] **No Extra Columns**: Only include required columns + what user explicitly asked for (no product mix, percentages, or other analysis columns unless requested)
 - [ ] **Table Format Display**: For ≤50 rows, MUST use `snow sql --format=table` (readable ASCII table, not CSV or plain text)
+- [ ] **Always Show Data**: NEVER describe table contents without showing actual data first. Always display preview (first 10-15 rows minimum) before generating CSV
 - [ ] **Calculation Accuracy**: NEVER format numbers (rounding, $ sign, K/M conversion) before calculations. Always calculate with raw numbers, format only in final SELECT for display
 
 **⚠️ P1 - SHOULD CHECK (Important)**
@@ -1761,15 +1762,48 @@ Users may request different bands (e.g., "$2M, $10M, $50M thresholds"). Always:
 
 This section **extends** the CSV export workflow (see "CSV Export - Always Offer and Be Efficient" above) with smart auto-generation for large datasets.
 
+### 🚨 P0 RULE: ALWAYS Show Data First
+
+**NEVER describe table contents without showing actual data:**
+
+❌ **WRONG:**
+```
+"The table shows top 3 deals for each leader with columns: Leader, Opportunity ID, Account Name..."
+💾 Export to CSV?
+```
+
+✅ **CORRECT:**
+```
+Preview (first 15 rows):
++--------+---------------+------------------+----------+
+| Leader | Opportunity   | Account          | ARR      |
++--------+---------------+------------------+----------+
+| AMER   | OPP-12345     | Acme Corp        | $2.5M    |
+| AMER   | OPP-67890     | Tech Inc         | $1.8M    |
+| AMER   | OPP-34567     | Global Co        | $1.2M    |
+| EMEA   | OPP-98765     | Euro Ltd         | $3.1M    |
+...
+
+✅ Full list in CSV (187 total rows)
+💾 Saved to: outputs/top_deals_by_leader.csv
+```
+
+**Key Rules:**
+1. ✅ **Always show preview** (minimum 10-15 rows) even for large datasets
+2. ✅ **Display with --format=table** for readability
+3. ✅ **Then** notify about CSV and full row count
+4. ❌ **NEVER** say "The table above shows..." unless you actually displayed a table
+5. ❌ **NEVER** describe columns without showing data
+
 **Summary/Aggregated Views** (<50 rows) → Show in terminal, offer CSV
 - Examples: "AI penetration by leader", "Top 10 countries", "Account count by segment"
 - Workflow: Show table → Offer "💾 Export to CSV?" → Save cached results if yes
 - These are readable in terminal
 
-**Detailed Lists** (>50 rows) → Auto-generate CSV immediately, show preview only
+**Detailed Lists** (>50 rows) → Auto-generate CSV immediately, **ALWAYS show preview**
 - Examples: "List all accounts with AI", "All opportunities vs competitors"
-- Workflow: Run query → Save to CSV → Show preview (first 15 rows) → Notify user
-- Too many rows to be readable in terminal
+- Workflow: Run query with LIMIT → Show preview (first 10-15 rows) → Save full query to CSV → Notify user
+- Too many rows to show all, but MUST show preview first
 
 ### Decision Criteria
 
@@ -1835,15 +1869,33 @@ Digital Transform        Tech Co        $350K     Forethought  Stage 4
 ### Implementation Pattern
 
 **For queries returning ≤50 rows:**
-1. Run query, save results
+1. Run query with `--format=table`
 2. Show full table in terminal
 3. Offer CSV export: "💾 Export to CSV?"
 4. If yes → save cached results (don't re-query)
 
 **For queries returning >50 rows:**
-1. Run query, save directly to CSV
-2. Show preview (first 15 rows) in terminal
-3. Notify: "✅ Full list in CSV (N total rows)"
+1. **Run preview query first** with `LIMIT 15` and `--format=table`
+2. **Show preview in terminal** (MANDATORY - never skip this step)
+3. Run full query and save to CSV
+4. Notify: "✅ Full list in CSV (N total rows)"
+
+**Example for large datasets:**
+```bash
+# Step 1: Show preview (MUST DO THIS)
+snow sql -q "SELECT ... FROM ... WHERE ... ORDER BY ... LIMIT 15" --format=table
+
+# Step 2: Generate full CSV
+snow sql -q "SELECT ... FROM ... WHERE ... ORDER BY ..." --format=csv > outputs/filename.csv
+
+# Step 3: Count total rows
+TOTAL=$(snow sql -q "SELECT COUNT(*) FROM ... WHERE ..." --format=csv | tail -1)
+
+# Step 4: Notify user
+echo ""
+echo "✅ Full list in CSV ($TOTAL total rows)"
+echo "💾 Saved to: outputs/filename.csv"
+```
 
 ### Keywords and Patterns
 
