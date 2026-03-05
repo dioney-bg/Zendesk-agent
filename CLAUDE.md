@@ -93,16 +93,36 @@ You are an interactive assistant for the Zendesk Sales Strategy team. You help t
 - If a query has an error, FIX IT SILENTLY and rerun - don't show the error or explain the fix
 
 **Output Format (Automatic):**
-- ≤50 rows → Show in terminal directly (using Snowflake CLI format or simple echo), offer CSV
+- ≤50 rows → Show in terminal as readable TABLE, offer CSV
 - >50 rows → Auto-generate CSV, show preview only
 - Always cache results (don't re-query for CSV)
 - Show total response time after results: `⚡ Completed in X.Xs` (from user request to final output)
 
-**CRITICAL - Display Method:**
-- **Use Snowflake CLI output directly** (e.g., `snow sql -q "..." --format=table`)
-- **Avoid Python scripts for display** - they cause UI to collapse output ("+N lines ctrl+o")
-- For summaries, show the query result table directly in terminal
-- Only use Python/scripting for data processing, not display
+**CRITICAL - Display Method (P0 - MANDATORY):**
+
+**For terminal display (≤50 rows), you MUST use Snowflake CLI with `--format=table`:**
+
+```bash
+snow sql -q "SELECT ..." --format=table
+```
+
+**This outputs a nicely formatted ASCII table that is easy to read:**
+```
++----------------+-------------+----------+
+| ACCOUNT_NAME   | OPP_ID      | ARR      |
++----------------+-------------+----------+
+| Acme Corp      | OPP-12345   | $500K    |
+| Tech Inc       | OPP-67890   | $350K    |
++----------------+-------------+----------+
+```
+
+**❌ DO NOT:**
+- Use `--format=csv` for terminal display (hard to read)
+- Use Python scripts for display (causes UI collapse)
+- Use plain text output without formatting
+- Echo raw query results without table formatting
+
+**✅ ALWAYS use `--format=table` for terminal display (≤50 rows)**
 
 ## ✅ Priority Checklist (Before Building Queries)
 
@@ -114,6 +134,7 @@ You are an interactive assistant for the Zendesk Sales Strategy team. You help t
 - [ ] TOTAL Row: Include with `UNION ALL`
 - [ ] **Opportunity Lists**: When query shows opportunities as ROWS (not aggregated), MUST include: `CRM_OPPORTUNITY_ID` + Total Booking/Pipeline column
 - [ ] **No Extra Columns**: Only include required columns + what user explicitly asked for (no product mix, percentages, or other analysis columns unless requested)
+- [ ] **Table Format Display**: For ≤50 rows, MUST use `snow sql --format=table` (readable ASCII table, not CSV or plain text)
 
 **⚠️ P1 - SHOULD CHECK (Important)**
 - [ ] Validate Totals: TOTAL row matches actual count
@@ -1517,31 +1538,34 @@ echo "💾 Export to CSV? (outputs/region_summary.csv)"
 ```
 
 **Key Points:**
-- ✅ Use `--format=table` for terminal display (not Python)
+- ✅ Use `--format=table` for terminal display (readable ASCII table)
 - ✅ Calculate timing in same Bash call as display
 - ✅ Use fixed filename `/tmp/claude_query_start_time` (not $$)
+- ✅ This is the PRIMARY method - simple and readable
 
-**Bad Practice (DON'T DO THIS):**
+**❌ DO NOT use these for terminal display:**
 ```bash
-# Show results
-snow sql -q "SELECT..." --format=table
+# ❌ WRONG: CSV format for terminal (hard to read)
+snow sql -q "..." --format=csv
 
-# Later, user asks for CSV
-# ❌ BAD: Re-runs the same query
-snow sql -q "SELECT..." --format=csv > file.csv
+# ❌ WRONG: Plain text without formatting
+snow sql -q "..." --format=plain
+
+# ❌ WRONG: Python scripts (causes UI collapse)
+python script.py | display results
 ```
 
-**Good Practice (DO THIS):**
+**✅ CORRECT method for terminal display:**
 ```bash
-# Run once, save results
-snow sql -q "SELECT..." --format=csv > /tmp/results.csv
+# ✅ Use --format=table for readable output
+snow sql -q "..." --format=table
+```
 
-# Show as table
-cat /tmp/results.csv | column -t -s,
-
-# Offer CSV export
-# ✅ GOOD: Just copy the file
-cp /tmp/results.csv outputs/country_growth.csv
+**For CSV export (if user requests):**
+```bash
+# If user wants CSV, run query again with --format=csv
+mkdir -p outputs
+snow sql -q "..." --format=csv > outputs/filename.csv
 ```
 
 ---
