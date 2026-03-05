@@ -449,11 +449,33 @@ LEFT JOIN CLEANSED.SALESFORCE.SALESFORCE_ACCOUNT_BCV s ON prior.CRM_ACCOUNT_ID =
 
 This applies today's country/industry assignment to historical data, since there's no historical dimension table available.
 
+### Region Data Cleaning - NA = AMER
+
+**CRITICAL**: The region field sometimes contains 'NA' which means AMER (North America).
+
+**Always convert 'NA' to 'AMER' in queries:**
+
+```sql
+-- Clean region values
+CASE
+  WHEN PRO_FORMA_REGION = 'NA' THEN 'AMER'
+  ELSE PRO_FORMA_REGION
+END AS region
+```
+
+**User Request Synonyms:**
+- **"NA"** = AMER
+- **"AMER"** = AMER
+- **"North America"** = AMER
+
+All three refer to the same region. When user asks for any of these, filter or group by AMER.
+
 ### Leader Assignment Logic
 
 **CRITICAL**: Leaders are assigned based on segment and region:
 - If `PRO_FORMA_MARKET_SEGMENT` is **SMB** or **Digital** → Leader = segment name
-- Otherwise → Leader = `PRO_FORMA_REGION` (AMER, EMEA, APAC, LATAM)
+- Otherwise → Leader = cleaned `PRO_FORMA_REGION` (AMER, EMEA, APAC, LATAM)
+  - **Note:** Convert 'NA' to 'AMER' first (see Region Data Cleaning above)
 
 **FILTERING BY LEADER - IMPORTANT:**
 
@@ -474,15 +496,17 @@ If user asks: "Show me SMB accounts by region" or "Digital leader broken down by
 - ✅ Group by: `PRO_FORMA_REGION`
 
 ```sql
--- Leader assignment pattern:
+-- Leader assignment pattern (with NA → AMER conversion):
 CASE
   WHEN PRO_FORMA_MARKET_SEGMENT IN ('SMB', 'Digital')
     THEN PRO_FORMA_MARKET_SEGMENT
+  WHEN PRO_FORMA_REGION = 'NA'
+    THEN 'AMER'
   ELSE COALESCE(PRO_FORMA_REGION, 'Unknown')
 END AS leader
 
--- Filtering for AMER (exclude SMB/Digital):
-WHERE PRO_FORMA_REGION = 'AMER'
+-- Filtering for AMER (exclude SMB/Digital, handle NA):
+WHERE PRO_FORMA_REGION IN ('AMER', 'NA')  -- NA = AMER
   AND PRO_FORMA_MARKET_SEGMENT NOT IN ('SMB', 'Digital')
 
 -- Filtering for SMB:
@@ -521,6 +545,7 @@ GROUP BY
 ORDER BY
   CASE leader
     WHEN 'AMER' THEN 1
+    WHEN 'NA' THEN 1      -- NA = AMER (same priority)
     WHEN 'EMEA' THEN 2
     WHEN 'APAC' THEN 3
     WHEN 'LATAM' THEN 4
@@ -720,6 +745,7 @@ GROUP BY c.leader
 ORDER BY
   CASE c.leader
     WHEN 'AMER' THEN 1
+    WHEN 'NA' THEN 1      -- NA = AMER
     WHEN 'EMEA' THEN 2
     WHEN 'APAC' THEN 3
     WHEN 'LATAM' THEN 4
