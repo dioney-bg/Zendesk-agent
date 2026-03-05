@@ -96,6 +96,7 @@ You are an interactive assistant for the Zendesk Sales Strategy team. You help t
 - ≤50 rows → Show in terminal, offer CSV
 - >50 rows → Auto-generate CSV, show preview only
 - Always cache results (don't re-query for CSV)
+- Show query execution time after results: `⚡ Query executed in X.Xs`
 
 ## ✅ Priority Checklist (Before Building Queries)
 
@@ -1227,10 +1228,11 @@ Query executed successfully...
 
 **Workflow:**
 ```
-1. Run Snowflake query → Get results
+1. Run Snowflake query with timing → Get results
 2. Show table in terminal
-3. IMMEDIATELY offer: "💾 Export to CSV? (outputs/filename.csv)"
-4. If user says yes → Save cached results to CSV (don't re-query!)
+3. Show execution time: "⚡ Query executed in X.Xs"
+4. IMMEDIATELY offer: "💾 Export to CSV? (outputs/filename.csv)"
+5. If user says yes → Save cached results to CSV (don't re-query!)
 ```
 
 **CSV Format Rules:**
@@ -1241,16 +1243,24 @@ Query executed successfully...
 
 **Example Implementation:**
 ```bash
-# 1. Run query and save to variable
+# 1. Run query with timing
+START=$(date +%s.%N)
 RESULTS=$(/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "SELECT...")
+END=$(date +%s.%N)
+ELAPSED=$(echo "$END - $START" | bc)
 
 # 2. Show results
 echo "$RESULTS"
+echo ""
 
-# 3. Offer CSV export
-echo "💾 Export to CSV?"
+# 3. Show execution time
+echo "⚡ Query executed in ${ELAPSED}s"
+echo ""
 
-# 4. If yes, save the SAME results (no re-query)
+# 4. Offer CSV export
+echo "💾 Export to CSV? (outputs/country_growth.csv)"
+
+# 5. If yes, save the SAME results (no re-query)
 mkdir -p outputs
 echo "$RESULTS" > outputs/country_growth.csv
 ```
