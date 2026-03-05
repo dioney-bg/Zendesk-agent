@@ -246,7 +246,7 @@ WHERE rec_1_priority IN (1, 2)  -- Only high-priority recommendations
 
 **🚨 P0 RULE:** When query shows opportunities as rows (not aggregated), MUST include:
 1. `CRM_OPPORTUNITY_ID`
-2. Total Booking/Pipeline (sum of ALL products in that opportunity)
+2. Total Booking/Pipeline column (use `PRODUCT = 'Total Booking'` - this product has the consolidated total)
 
 See "Opportunity-Level Output Guidelines" section below for details.
 
@@ -384,8 +384,8 @@ GROUP BY REGION
 
 1. **CRM_OPPORTUNITY_ID** - For tracking and reference
 2. **Total Product Value:**
-   - For closed opportunities → Sum all products across that opportunity, label as "Total Booking"
-   - For open opportunities → Sum all products across that opportunity, label as "Total Pipeline"
+   - Use `PRODUCT = 'Total Booking'` to get the total (this product already has the consolidated value)
+   - Label column as "Total Booking" (closed) or "Total Pipeline" (open)
 
 **When this applies (examples of trigger phrases):**
 - "Show me opportunities..."
@@ -403,22 +403,28 @@ GROUP BY REGION
 
 **✅ CORRECT Example - Copilot opportunities:**
 ```sql
+-- Get Copilot opportunities with Total Booking
 SELECT
-    CRM_OPPORTUNITY_ID,                    -- ✅ REQUIRED: Opportunity ID
-    CRM_ACCOUNT_NAME,
-    OPP_NAME,
-    CLOSEDATE,
-    REGION,
-    -- Individual product ARR (what user asked for)
-    SUM(CASE WHEN PRODUCT = 'Copilot' THEN PRODUCT_BOOKING_ARR_USD ELSE 0 END) as copilot_arr,
-    -- ✅ REQUIRED: Total across ALL products in this opportunity
-    SUM(PRODUCT_BOOKING_ARR_USD) as total_booking
-FROM gtmsi_consolidated_pipeline_bookings
-WHERE OPPORTUNITY_STATUS = 'Closed'
-  AND PRODUCT_BOOKING_ARR_USD > 0
-  AND ...
-GROUP BY CRM_OPPORTUNITY_ID, CRM_ACCOUNT_NAME, OPP_NAME, CLOSEDATE, REGION
-HAVING SUM(CASE WHEN PRODUCT = 'Copilot' THEN PRODUCT_BOOKING_ARR_USD ELSE 0 END) > 0
+    p.CRM_OPPORTUNITY_ID,                    -- ✅ REQUIRED: Opportunity ID
+    p.CRM_ACCOUNT_NAME,
+    p.OPP_NAME,
+    p.CLOSEDATE,
+    p.REGION,
+    p.PRODUCT_BOOKING_ARR_USD as copilot_arr,  -- Copilot ARR (what user asked for)
+    t.PRODUCT_BOOKING_ARR_USD as total_booking  -- ✅ REQUIRED: Total from 'Total Booking' product
+FROM gtmsi_consolidated_pipeline_bookings p
+-- Join to get Total Booking for this opportunity
+LEFT JOIN gtmsi_consolidated_pipeline_bookings t
+  ON p.CRM_OPPORTUNITY_ID = t.CRM_OPPORTUNITY_ID
+  AND t.PRODUCT = 'Total Booking'
+  AND t.DATE_LABEL = 'today'
+WHERE p.OPPORTUNITY_STATUS = 'Closed'
+  AND p.PRODUCT = 'Copilot'
+  AND p.PRODUCT_BOOKING_ARR_USD > 0
+  AND p.opportunity_is_commissionable = TRUE
+  AND p.stage_2_plus_date_c IS NOT NULL
+  AND p.DATE_LABEL = 'today'
+  AND p.OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
 ```
 
 **❌ WRONG Example - Missing ID and Total:**
@@ -426,10 +432,11 @@ HAVING SUM(CASE WHEN PRODUCT = 'Copilot' THEN PRODUCT_BOOKING_ARR_USD ELSE 0 END
 SELECT
     CRM_ACCOUNT_NAME,
     OPP_NAME,
-    SUM(CASE WHEN PRODUCT = 'Copilot' THEN PRODUCT_BOOKING_ARR_USD ELSE 0 END) as copilot_arr
-    -- ❌ MISSING: CRM_OPPORTUNITY_ID
-    -- ❌ MISSING: total_booking (total across all products)
+    PRODUCT_BOOKING_ARR_USD as copilot_arr
 FROM gtmsi_consolidated_pipeline_bookings
+WHERE PRODUCT = 'Copilot'
+  -- ❌ MISSING: CRM_OPPORTUNITY_ID column
+  -- ❌ MISSING: Join to PRODUCT = 'Total Booking' for total_booking column
 ...
 ```
 
