@@ -246,11 +246,14 @@ WHERE rec_1_priority IN (1, 2)  -- Only high-priority recommendations
 - `opportunity_is_commissionable` - Boolean (TRUE = commissionable)
 - `stage_2_plus_date_c` - Date when opportunity reached Stage 2+
 - `CLOSEDATE` - Opportunity close date
+- `STAGE_NAME` - Opportunity stage (use when asked about "stage")
+- `gtm_team` - GTM team that sourced the opportunity (use when asked "which team" or "GTM team")
 - `PRO_FORMA_MARKET_SEGMENT` - Customer segment
 - `REGION` - Geographic region
 - `PRODUCT` - Product name ('Ultimate', 'Ultimate_AR', 'Copilot', etc.)
 - `PRODUCT_ARR_USD` - Pipeline ARR (for open opportunities)
 - `PRODUCT_BOOKING_ARR_USD` - Booking ARR (for closed opportunities)
+- `DEPARTMENT_OR_USAGE_C` - Department/usage (ES product only, requires cleaning)
 - `DATE_LABEL` - Use 'today' for current snapshot
 
 **Required Filters (Data Quality):**
@@ -285,9 +288,21 @@ WHERE PRODUCT IN ('Total Booking')
 -- AI Products (AI Agents + Copilot)
 WHERE PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot')
 
--- Enterprise Support (ALWAYS include USE_CASE_C filter!)
+-- Enterprise Support (ALWAYS include USE_CASE_C filter + department cleaning!)
 WHERE PRODUCT IN ('ES')
   AND USE_CASE_C LIKE 'Internal%'
+-- For ES, also include cleaned department column:
+SELECT
+  ...,
+  COALESCE(
+    IFF(
+      DEPARTMENT_OR_USAGE_C LIKE '%;%',
+      'Multi-Department',
+      DEPARTMENT_OR_USAGE_C
+    ),
+    'Unknown'
+  ) AS DEPARTMENT_CLEANED
+FROM ...
 
 -- Quality & Workforce products
 WHERE PRODUCT IN ('QA', 'WEM', 'WFM')
