@@ -249,6 +249,8 @@ WHERE rec_1_priority IN (1, 2)  -- Only high-priority recommendations
 - `CLOSEDATE` - Opportunity close date
 - `STAGE_NAME` - Opportunity stage (use when asked about "stage")
 - `gtm_team` - GTM team that sourced the opportunity (use when asked "which team" or "GTM team")
+- `CORRECT_OWNER_NAME` - Account Executive / Sales Rep (use when asked for "AE" or "sales rep")
+- `OPPORTUNITY_OWNER_MANAGER_NAME` - First Line Manager (use when asked for "manager" or "FLM")
 - `PRO_FORMA_MARKET_SEGMENT` - Customer segment
 - `REGION` - Geographic region
 - `PRODUCT` - Product name ('Ultimate', 'Ultimate_AR', 'Copilot', etc.)
@@ -392,6 +394,24 @@ GROUP BY CRM_OPPORTUNITY_ID, CRM_ACCOUNT_NAME, OPP_NAME, CLOSEDATE, REGION
 ```
 
 **Why:** Users need opportunity ID for tracking and total value for context, even when analyzing specific products.
+
+**Adding Sales Rep and Manager Information:**
+
+When asked to include AE, sales rep, manager, or FLM:
+
+```sql
+SELECT
+    CRM_OPPORTUNITY_ID,
+    CRM_ACCOUNT_NAME,
+    CORRECT_OWNER_NAME as sales_rep,           -- AE/sales rep
+    OPPORTUNITY_OWNER_MANAGER_NAME as manager, -- FLM/manager
+    ...
+FROM gtmsi_consolidated_pipeline_bookings
+```
+
+**Column Usage:**
+- **"AE"** or **"sales rep"** → Use `CORRECT_OWNER_NAME`
+- **"Manager"** or **"FLM"** (First Line Manager) → Use `OPPORTUNITY_OWNER_MANAGER_NAME`
 
 ### Time-Based Comparisons (MoM/YoY/QoQ)
 
@@ -1272,7 +1292,30 @@ Query executed successfully...
 3. **Cache the query results** - save them once, don't re-query
 4. **Save to outputs/ directory** with descriptive filename
 
-**Timing Rule:** Start timer at the BEGINNING of handling the request (before searching patterns, reading files, or executing queries). This shows users the complete response time including AI processing.
+**Timing Rule - CRITICAL:**
+
+The timer MUST be the **VERY FIRST Bash command** you execute when handling the request. Start timing BEFORE:
+- Reading any files (queries, patterns, etc.)
+- Searching for patterns with Glob/Grep
+- Building queries
+- Executing Snowflake queries
+
+**Implementation:** Your first Bash tool call should be:
+```bash
+START=$(date +%s.%N)
+echo $START > /tmp/query_start_time_$$
+```
+
+Then at the end, calculate elapsed time:
+```bash
+START=$(cat /tmp/query_start_time_$$)
+END=$(date +%s.%N)
+ELAPSED=$(printf "%.1f" $(echo "$END - $START" | bc))
+echo "⚡ Completed in ${ELAPSED}s"
+rm /tmp/query_start_time_$$
+```
+
+This captures the complete response time: pattern search + query building + execution + formatting.
 
 **Workflow:**
 ```
