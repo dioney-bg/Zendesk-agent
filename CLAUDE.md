@@ -288,7 +288,7 @@ WHERE PRODUCT IN ('Total Booking')
 -- AI Products (AI Agents + Copilot)
 WHERE PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot')
 
--- Enterprise Support (ALWAYS include USE_CASE_C filter + department cleaning!)
+-- Employee Service (ALWAYS include USE_CASE_C filter + department cleaning!)
 WHERE PRODUCT IN ('ES')
   AND USE_CASE_C LIKE 'Internal%'
 -- For ES, also include cleaned department column:
@@ -317,7 +317,7 @@ WHERE PRODUCT IN ('Suite', 'Contact_Center', 'ADPP')
 **Product Selection Rules:**
 - **"Total" / "Overall"** → Use `'Total Booking'` (pre-consolidated)
 - **"AI" / "AI Agents"** → Use `'Ultimate', 'Ultimate_AR', 'Copilot'`
-- **"ES" / "Enterprise Support"** → Use `'ES'` + `USE_CASE_C LIKE 'Internal%'` (REQUIRED!)
+- **"ES" / "Employee Service"** → Use `'ES'` + `USE_CASE_C LIKE 'Internal%'` (REQUIRED!)
 - **"Suite" / "Seats"** → Use `'Suite'` (common synonym)
 - **Specific product name** → Match to appropriate filter
 
