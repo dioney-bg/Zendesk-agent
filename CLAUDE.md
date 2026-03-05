@@ -414,8 +414,14 @@ WHERE DATE_LABEL = 'today'
 -- Total bookings/pipeline (all products consolidated)
 WHERE PRODUCT IN ('Total Booking')
 
--- AI Products (AI Agents + Copilot)
+-- AI Agents (specific product: AI Agents Advanced only)
+WHERE PRODUCT IN ('Ultimate', 'Ultimate_AR')
+
+-- AI Products (broad category: AI Agents + Copilot)
 WHERE PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot')
+
+-- Copilot (specific product)
+WHERE PRODUCT = 'Copilot'
 
 -- Employee Service (ALWAYS include USE_CASE_C filter + department cleaning!)
 WHERE PRODUCT IN ('ES')
@@ -445,7 +451,9 @@ WHERE PRODUCT IN ('Suite', 'Contact_Center', 'ADPP')
 
 **Product Selection Rules:**
 - **"Total" / "Overall"** → Use `'Total Booking'` (pre-consolidated)
-- **"AI" / "AI Agents"** → Use `'Ultimate', 'Ultimate_AR', 'Copilot'`
+- **"AI Agents"** (specific) → Use `'Ultimate', 'Ultimate_AR'` only
+- **"AI" / "AI products"** (broad) → Use `'Ultimate', 'Ultimate_AR', 'Copilot'`
+- **"Copilot"** (specific) → Use `'Copilot'`
 - **"ES" / "Employee Service"** → Use `'ES'` + `USE_CASE_C LIKE 'Internal%'` (REQUIRED!)
 - **"Suite" / "Seats"** → Use `'Suite'` (common synonym)
 - **Specific product name** → Match to appropriate filter
