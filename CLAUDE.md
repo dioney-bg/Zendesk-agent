@@ -96,7 +96,7 @@ You are an interactive assistant for the Zendesk Sales Strategy team. You help t
 - ≤50 rows → Show in terminal, offer CSV
 - >50 rows → Auto-generate CSV, show preview only
 - Always cache results (don't re-query for CSV)
-- Show query execution time after results: `⚡ Query executed in X.Xs`
+- Show total response time after results: `⚡ Completed in X.Xs` (from user request to final output)
 
 ## ✅ Priority Checklist (Before Building Queries)
 
@@ -1222,17 +1222,22 @@ Query executed successfully...
 
 **After showing any table results, ALWAYS:**
 
-1. **Offer CSV export** (don't wait for user to ask)
-2. **Cache the query results** - save them once, don't re-query
-3. **Save to outputs/ directory** with descriptive filename
+1. **Show total response time** - from start of request to final output
+2. **Offer CSV export** (don't wait for user to ask)
+3. **Cache the query results** - save them once, don't re-query
+4. **Save to outputs/ directory** with descriptive filename
+
+**Timing Rule:** Start timer at the BEGINNING of handling the request (before searching patterns, reading files, or executing queries). This shows users the complete response time including AI processing.
 
 **Workflow:**
 ```
-1. Run Snowflake query with timing → Get results
-2. Show table in terminal
-3. Show execution time: "⚡ Query executed in X.Xs"
-4. IMMEDIATELY offer: "💾 Export to CSV? (outputs/filename.csv)"
-5. If user says yes → Save cached results to CSV (don't re-query!)
+1. Capture start time (beginning of request handling)
+2. Process request (search patterns, build query, execute)
+3. Show table in terminal
+4. Capture end time and calculate total elapsed
+5. Show total time: "⚡ Completed in X.Xs"
+6. IMMEDIATELY offer: "💾 Export to CSV? (outputs/filename.csv)"
+7. If user says yes → Save cached results to CSV (don't re-query!)
 ```
 
 **CSV Format Rules:**
@@ -1243,24 +1248,29 @@ Query executed successfully...
 
 **Example Implementation:**
 ```bash
-# 1. Run query with timing
+# 1. Capture start time (at beginning of request handling)
 START=$(date +%s.%N)
-RESULTS=$(/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "SELECT...")
-END=$(date +%s.%N)
-ELAPSED=$(echo "$END - $START" | bc)
 
-# 2. Show results
+# 2. Process request (search patterns, build query, execute)
+# ... [pattern matching, query building logic] ...
+RESULTS=$(/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "SELECT...")
+
+# 3. Show results
 echo "$RESULTS"
 echo ""
 
-# 3. Show execution time
-echo "⚡ Query executed in ${ELAPSED}s"
+# 4. Calculate total elapsed time
+END=$(date +%s.%N)
+ELAPSED=$(printf "%.1f" $(echo "$END - $START" | bc))
+
+# 5. Show total response time
+echo "⚡ Completed in ${ELAPSED}s"
 echo ""
 
-# 4. Offer CSV export
+# 6. Offer CSV export
 echo "💾 Export to CSV? (outputs/country_growth.csv)"
 
-# 5. If yes, save the SAME results (no re-query)
+# 7. If yes, save the SAME results (no re-query)
 mkdir -p outputs
 echo "$RESULTS" > outputs/country_growth.csv
 ```
