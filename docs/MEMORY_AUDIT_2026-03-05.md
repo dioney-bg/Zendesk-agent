@@ -90,7 +90,7 @@ Query Building:
 - Include TOTAL row
 
 Query Execution:
-- Run with --format=table
+- Run with --format=csv
 - Cache results
 
 Output:
@@ -114,7 +114,7 @@ Automated tests for common queries
 
 ### P0 Rules (10 Must-Check Items):
 
-1. ✅ **--format=table command template** - AT TOP with visual emphasis
+1. ✅ **--format=csv command template** - AT TOP with visual emphasis
 2. ✅ **Show table first, then insights** - Corrected per user feedback
 3. ✅ **Required filters** - SERVICE_DATE, AS_OF_DATE, CRM_NET_ARR_USD
 4. ✅ **Leader filtering** - Regional excludes SMB/Digital
@@ -142,14 +142,14 @@ Automated tests for common queries
 
 ### Issue: Table Not Displaying
 **Root causes identified:**
-1. Missing `--format=table` flag on snow sql commands
+1. Missing `--format=csv` flag on snow sql commands
 2. "Be concise" misinterpreted as "skip table display"
 
 **Fixes applied:**
 1. ✅ Added prominent command template at top of CLAUDE.md
 2. ✅ Clarified "be concise" means skip narration, NOT insights
 3. ✅ Corrected to allow insights/summaries after table
-4. ✅ Made --format=table #1 P0 rule
+4. ✅ Made --format=csv #1 P0 rule
 5. ✅ Added visual emphasis (arrows, REQUIRED labels)
 
 ---
@@ -183,7 +183,7 @@ The rules are comprehensive, well-organized, and enforce data quality. The recen
 ## 📋 Next Steps
 
 1. **Test agent** with new rules
-   - Verify `--format=table` is used
+   - Verify `--format=csv` is used
    - Confirm table displays properly
    - Check that insights appear after table
 

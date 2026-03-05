@@ -1,0 +1,19 @@
+LEADER,CRM_OPPORTUNITY_ID,CRM_ACCOUNT_NAME,AE_NAME,FLM,AI_AGENT_ARR,TOTAL_BOOKING,DEAL_TYPE,CLOSEDATE
+AMER,006PC00000QaL5NYAV,"Colorcon, Inc.",Randy Knight,Thomas Nagy,10000.0008,158267.1600,Multi-Product,2026-02-19
+AMER,006PC00000NIPYzYAP,Lucky Strike,Oz Davis,Kevin Donoher,8499.9996,89796.7200,Multi-Product,2026-02-01
+AMER,006PC00000LMN57YAH,"Sprout Social, Inc.",James Martins,Kevin Meilinger,4950.0000,45369.9600,Multi-Product,2026-02-20
+EMEA,006PC00000RtI1ZYAV,ePassi Group Oy,Gizem Durucan,Thor Newman Andersen,51915.0900,348568.8500,Multi-Product,2026-02-28
+EMEA,006PC00000SARJqYAP,SUPERBET ONLINE FOREIGN BRANCH,Andrei Caisin,Dmitry Osoblivets,45223.8579,132441.2100,Multi-Product,2026-02-02
+EMEA,006PC00000TocEHYAZ,Vision NL Ltd,Jacob Beetham,James Stubbs,78127.0551,93910.3000,Multi-Product,2026-02-10
+APAC,006PC00000V5b9xYAB,PJ Lhuillier Inc.,Benedict Gomorera,Guillermo Carreño Manzano,146666.6664,180666.6000,Multi-Product,2026-02-25
+APAC,006PC00000QD5FqYAL,Montu,Annie McNamara,Casey Ayala,50000.0400,95260.4400,Multi-Product,2026-02-08
+APAC,006PC00000IP2vXYAT,PJ Lhuillier Inc.,Benedict Gomorera,Guillermo Carreño Manzano,53333.3328,53333.2800,AI Agents Only,2026-02-25
+LATAM,006PC00000RBNrOYAX,Live!,Bruno Carvalho,Daniela Reis,45750.4184,66300.9000,Multi-Product,2026-03-04
+LATAM,006PC00000TVngTYAT,Fretadão,Marina Luz,Matheus Borges,44588.0601,49807.8300,Multi-Product,2026-02-18
+LATAM,006PC00000VFMhVYAX,ASIS TAXTECH LTDA,Rafael Luciano,Daniela Reis,7178.2077,12165.7500,Multi-Product,2026-02-27
+SMB,006PC00000Uf7qhYAB,Jeitto Instituição de Pagamentos LTDA,Lucas Angrisani,Rafael Mussato,217593.4462,217593.4500,AI Agents Only,2026-03-02
+SMB,006PC00000Tqa9xYAB,Quip,Chris Dicso,Mark Hochman,45000.0000,91620.2400,Multi-Product,2026-02-26
+SMB,006PC00000TGzQDYA1,Logic Utilities,Ahmed Mahmoud,Haitham Khalil,27999.9996,63170.0400,Multi-Product,2026-02-03
+Digital,006PC00000TGJafYAH,Bullfinch Asset Aktiengesellschaft,Matthew Pigott,Mihalis Isaak,24227.0420,41243.7000,Multi-Product,2026-02-26
+Digital,006PC00000RlXQoYAN,The Venetoulis Institute for Local Journalism,Fanta Diaby,Rene Becker,15000.0000,26946.2400,Multi-Product,2026-02-27
+Digital,006PC00000VC8JJYA1,Gift & Go,Gaia Cebulec,Rene Becker,4274.6279,25318.8500,Multi-Product,2026-03-03

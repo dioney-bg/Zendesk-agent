@@ -79,24 +79,24 @@ ai-report:
 
 # Ad-hoc Queries - Geographic
 country-report:
-	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/geographic/top_countries_by_arr_and_accounts.sql --format=table
+	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/geographic/top_countries_by_arr_and_accounts.sql --format=csv
 
 country-growth-report:
-	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/geographic/country_growth_yoy.sql --format=table
+	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/geographic/country_growth_yoy.sql --format=csv
 
 country-decreases-report:
-	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/geographic/country_decreases_yoy.sql --format=table
+	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/geographic/country_decreases_yoy.sql --format=csv
 
 # Ad-hoc Queries - Industry
 amer-industry-growth:
-	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/industry/amer_industry_growth_yoy.sql --format=table
+	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/industry/amer_industry_growth_yoy.sql --format=csv
 
 # Ad-hoc Queries - Competitive Analysis
 bot-competitor-wins:
-	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/competitive/bot_competitor_wins.sql --format=table
+	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/competitive/bot_competitor_wins.sql --format=csv
 
 bot-competitor-pipeline:
-	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/competitive/bot_competitor_pipeline.sql --format=table
+	@/Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -f queries/competitive/bot_competitor_pipeline.sql --format=csv
 
 # Run tests (placeholder)
 test:

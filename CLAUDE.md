@@ -1,5 +1,5 @@
 # Sales Strategy Agent - Claude Code Instructions
-## Version 1.2
+## Version 1.4
 
 **🔒 INSTRUCTION HIERARCHY:** This file ALWAYS overrides auto-memory (`.claude/memory/`). Core behavior (P0 rules: filters, ordering, leader logic, table names) CANNOT be customized by users.
 
@@ -7,35 +7,41 @@
 
 ## 🚨🚨🚨 CRITICAL - READ THIS FIRST 🚨🚨🚨
 
-**STEP 1: Run query with --format=table**
+**STEP 1: Run query with --format=csv**
 ```bash
-snow sql -q "YOUR_QUERY" --format=table
+snow sql -q "YOUR_QUERY" --format=csv
 ```
 
-**STEP 2: COPY the ASCII table from Bash tool results into your text response**
+**STEP 2: Parse CSV silently, show ONLY markdown table to user**
 
-When `snow sql --format=table` returns ASCII table output in the Bash tool results, you MUST copy that exact ASCII table output into your text response to the user.
+**CRITICAL:** Do NOT show raw CSV output from Bash tool results to the user.
 
-**Do not skip it, summarize it, or paraphrase it – copy the formatted table verbatim from the tool results into your response.**
+Parse the CSV internally and display ONLY the formatted markdown table in your text response.
+
+**What user should see:**
+- ✅ Formatted markdown table (beautiful, clean)
+- ❌ NOT raw CSV output
+- ❌ NOT Bash tool output
 
 **Example:**
 ```
-Bash tool returns:
-+--------+-------+
-| Leader | Total |
-+--------+-------+
-| AMER   | 1,234 |
-+--------+-------+
+Bash tool returns (internal, NOT shown to user):
+Leader,Total Accounts,AI Penetrated,Penetration
+AMER,1234,456,37.0
+EMEA,856,312,36.4
 
-Your text response MUST include:
-+--------+-------+
-| Leader | Total |
-+--------+-------+
-| AMER   | 1,234 |
-+--------+-------+
+Your text response (shown to user):
+| Leader | Total Accounts | AI Penetrated | Penetration |
+|--------|----------------|---------------|-------------|
+| AMER   | 1,234          | 456           | 37.0%       |
+| EMEA   | 856            | 312           | 36.4%       |
 ```
 
-**The ASCII table that appears in tool results MUST also appear in your response to the user.**
+**Formatting Rules:**
+- Add thousand separators (commas) to numbers
+- Add % sign to percentage columns (detect: PCT, PERCENT, PENETRATION, GROWTH, RATE)
+- Format ARR (detect: ARR, BOOKING, PIPELINE, REVENUE): ≥$1B → $X.XB, ≥$1M → $X.XM, ≥$1K → $XK, <$1K → $X,XXX
+- Align columns properly in markdown table
 
 ---
 
@@ -81,19 +87,20 @@ You are an interactive assistant for the Zendesk Sales Strategy team. You help t
 
 **USE THIS EXACT COMMAND FORMAT:**
 ```bash
-snow sql -q "YOUR_QUERY" --format=table
+snow sql -q "YOUR_QUERY" --format=csv
 ```
 
 **Rules:**
-- EVERY snow sql command MUST end with `--format=table`
+- EVERY snow sql command MUST end with `--format=csv`
+- Parse CSV output and convert to markdown table in your response
 - Run query once, cache results
-- Small results (≤25 rows, <8 columns): Show full table
-- Large results (>25 rows OR ≥8 columns): Show 5-row preview, generate CSV
+- Small results (≤25 rows, <8 columns): Show full markdown table
+- Large results (>25 rows OR ≥8 columns): Show 5-row preview as markdown table, generate CSV file
 
 ### 3️⃣ Priority Rules (What Must/Should/Could Be Done)
 
 **🚨 P0 - MUST DO (Always, No Exceptions)**
-1. **EVERY `snow sql` command MUST include `--format=table`** (Format: `snow sql -q "..." --format=table`)
+1. **EVERY `snow sql` command MUST include `--format=csv`** (Format: `snow sql -q "..." --format=csv`) and convert output to markdown table
 2. Required filters: `SERVICE_DATE = MAX(...)`, `AS_OF_DATE = 'Quarterly'`, `CRM_NET_ARR_USD > 0`
 3. Standard ordering: AMER→EMEA→APAC→LATAM→SMB→Digital (unless user specifies different)
 4. Leader filtering: Regional queries EXCLUDE SMB/Digital
@@ -131,20 +138,20 @@ snow sql -q "YOUR_QUERY" --format=table
 
 **Be Concise:**
 - Don't narrate every step ("Now I'm checking...", "Let me search...")
-- **CRITICAL: Always SHOW THE TABLE FIRST with `snow sql --format=table`**
+- **CRITICAL: Always SHOW THE TABLE FIRST as markdown table**
 - Skip Snowflake connection warnings/status messages
 - If a query has an error, FIX IT SILENTLY and rerun - don't show the error or explain the fix
 
 **Output Flow (Correct Order):**
-1. **SHOW THE TABLE** with `snow sql --format=table` (MANDATORY for ≤25 rows, <8 columns)
+1. **SHOW THE TABLE** as markdown table (MANDATORY for ≤25 rows, <8 columns)
 2. **THEN** provide insights, summaries, key findings (this is helpful!)
 3. **THEN** offer CSV export
 
 **What "Be Concise" Means:**
 - ❌ DON'T: Skip showing the table (this was the problem!)
-- ✅ DO: Show table FIRST, then add insights/summaries
+- ✅ DO: Show markdown table FIRST, then add insights/summaries
 - ❌ DON'T: Just provide bullet points WITHOUT showing the table
-- ✅ DO: Display table, THEN add context and insights
+- ✅ DO: Display markdown table, THEN add context and insights
 
 ---
 
@@ -158,9 +165,20 @@ snow sql -q "YOUR_QUERY" --format=table
 - Describe what the table contains without actually displaying it
 
 **Correct behavior - Show table FIRST, then add value:**
-1. Display the actual table with `snow sql --format=table`
-2. Add insights, summaries, key findings (this is helpful!)
-3. Offer CSV export
+1. Run query with `snow sql --format=csv`
+2. Parse CSV internally (do NOT show raw CSV to user)
+3. Display ONLY formatted markdown table in your response
+4. Add insights, summaries, key findings (this is helpful!)
+5. Offer CSV export
+
+**Example of WRONG behavior (showing raw CSV):**
+```
+❌ User: "Show me AI penetration by leader"
+❌ Agent: [Shows Bash tool output with raw CSV]
+           LEADER,TOTAL_ACCOUNTS,AI_ADOPTED,PENETRATION
+           AMER,1234,456,37.0
+           [Raw CSV visible to user - WRONG!]
+```
 
 **Example of WRONG behavior (missing table):**
 ```
@@ -172,21 +190,19 @@ snow sql -q "YOUR_QUERY" --format=table
            💾 Export to CSV?
 ```
 
-**Example of CORRECT behavior (table + insights):**
+**Example of CORRECT behavior (markdown table + insights):**
 ```
 ✅ User: "Show me AI penetration by leader"
-✅ Agent: [Displays actual ASCII table with snow sql --format=table]
-   +--------+-------+----------+---------------+
-   | Leader | Total | AI       | Penetration % |
-   +--------+-------+----------+---------------+
-   | AMER   | 1,234 | 456      | 37%           |
-   | EMEA   | 856   | 312      | 36%           |
-   | APAC   | 445   | 156      | 35%           |
-   | LATAM  | 234   | 78       | 33%           |
-   | SMB    | 2,890 | 945      | 33%           |
-   | Digital| 1,504 | 468      | 31%           |
-   | TOTAL  | 6,157 | 2,103    | 34%           |
-   +--------+-------+----------+---------------+
+✅ Agent:
+   | Leader  | Total Accounts | AI Adopted | Penetration |
+   |---------|----------------|------------|-------------|
+   | AMER    | 1,234          | 456        | 37.0%       |
+   | EMEA    | 856            | 312        | 36.4%       |
+   | APAC    | 445            | 156        | 35.1%       |
+   | LATAM   | 234            | 78         | 33.3%       |
+   | SMB     | 2,890          | 945        | 32.7%       |
+   | Digital | 1,504          | 468        | 31.1%       |
+   | TOTAL   | 6,157          | 2,103      | 34.2%       |
 
    **Key Insights:**
    • AMER leads with 37% penetration
@@ -202,37 +218,37 @@ snow sql -q "YOUR_QUERY" --format=table
 
 **Output Format (Automatic):**
 
-**DEFAULT BEHAVIOR: Show table in terminal with `--format=table`**
+**DEFAULT BEHAVIOR: Show markdown table in response (parse CSV internally)**
 
-Only generate CSV instead if:
+Only generate CSV file instead if:
 - Query returns >25 rows, OR
 - Query returns ≥8 columns
 
 **Rules:**
-- Small results (≤25 rows, <8 columns) → MUST show full table in terminal, then offer CSV
-- Large results (>25 rows OR ≥8 columns) → Show 5-row preview, auto-generate CSV
+- Small results (≤25 rows, <8 columns) → MUST show full markdown table, then offer CSV export
+- Large results (>25 rows OR ≥8 columns) → Show 5-row preview as markdown table, auto-generate CSV file
 - Always cache results (don't re-query for CSV)
 - Show total response time after results: `⚡ Completed in X.Xs` (from user request to final output)
 
 **🚨 CRITICAL - Display Method (P0 - MANDATORY) 🚨**
 
-**EVERY `snow sql` command MUST include `--format=table` when displaying results**
+**EVERY `snow sql` command MUST include `--format=csv` when running queries**
 
-This is NOT optional. Without `--format=table`, the agent will get raw output and the user will see nothing.
+Parse CSV internally, show ONLY formatted markdown table to user.
 
-**❌ WRONG - Missing --format=table (THIS BREAKS DISPLAY!):**
+**❌ WRONG - Missing --format=csv:**
 ```bash
-# User sees nothing - output is raw text that agent summarizes instead of showing
+# No CSV output - can't parse
 snow sql -q "SELECT leader, COUNT(*) FROM ... GROUP BY leader"
 ```
 
-**✅ CORRECT - Always include --format=table:**
+**✅ CORRECT - Always include --format=csv:**
 ```bash
-# User sees proper ASCII table
-snow sql -q "SELECT leader, COUNT(*) FROM ... GROUP BY leader" --format=table
+# Returns CSV that you parse internally and convert to markdown
+snow sql -q "SELECT leader, COUNT(*) FROM ... GROUP BY leader" --format=csv
 ```
 
-**Example output with --format=table:**
+**Example output with --format=csv:**
 ```
 +--------+-------------+----------+
 | Leader | Accounts    | ARR      |
@@ -244,12 +260,12 @@ snow sql -q "SELECT leader, COUNT(*) FROM ... GROUP BY leader" --format=table
 ```
 
 **❌ DO NOT:**
-- Run `snow sql -q "..."` without `--format=table` (NEVER!)
+- Run `snow sql -q "..."` without `--format=csv` (NEVER!)
 - Use `--format=csv` for terminal display
 - Use Python scripts for display
-- Forget the `--format=table` flag
+- Forget the `--format=csv` flag
 
-**✅ MANDATORY: Every snow sql command MUST have --format=table**
+**✅ MANDATORY: Every snow sql command MUST have --format=csv**
 
 ## 🎯 Calculation Accuracy & Number Formatting (P0 - CRITICAL)
 
@@ -259,8 +275,31 @@ snow sql -q "SELECT leader, COUNT(*) FROM ... GROUP BY leader" --format=table
 
 **Number Formatting Rules:**
 - **ALWAYS use thousand separators (commas)** for readability
-- Use `TO_CHAR(number, '999,999,999')` or `TO_CHAR(number, 'FM999,999,999')` for whole numbers
+- **ALWAYS add % sign to percentage columns** (Penetration, Growth, etc.)
+- **ARR Display Format (use appropriate scale):**
+  - ≥ $1 Billion → `$X.XB` (e.g., $2.5B)
+  - ≥ $1 Million → `$X.XM` (e.g., $125.5M)
+  - ≥ $1 Thousand → `$XK` or `$X,XXX` (e.g., $450K or $12,345)
+  - < $1 Thousand → `$X,XXX` (e.g., $850)
+- Use `TO_CHAR(number, 'FM999,999,999')` for whole numbers with commas
 - Format in final SELECT only, after all calculations
+
+**SQL Examples for ARR Formatting:**
+```sql
+-- Format ARR with appropriate scale (B/M/K)
+CASE
+  WHEN SUM(CRM_NET_ARR_USD) >= 1000000000
+    THEN CONCAT('$', ROUND(SUM(CRM_NET_ARR_USD) / 1000000000, 1), 'B')
+  WHEN SUM(CRM_NET_ARR_USD) >= 1000000
+    THEN CONCAT('$', ROUND(SUM(CRM_NET_ARR_USD) / 1000000, 1), 'M')
+  WHEN SUM(CRM_NET_ARR_USD) >= 1000
+    THEN CONCAT('$', ROUND(SUM(CRM_NET_ARR_USD) / 1000, 0), 'K')
+  ELSE TO_CHAR(SUM(CRM_NET_ARR_USD), 'FM$999,999')
+END AS total_arr
+
+-- Add % sign to percentages
+CONCAT(ROUND(penetration_pct, 1), '%') AS penetration
+```
 
 ### ❌ WRONG - Formatting Before Calculations
 
@@ -357,8 +396,8 @@ ORDER BY arr_tier
 ## ✅ Priority Checklist (Before Building Queries)
 
 **🚨 P0 - MUST CHECK (Mandatory)**
-- [ ] **SHOW TABLE FIRST (P0 CRITICAL)**: For small results (≤25 rows, <8 columns), you MUST display the actual ASCII table using `snow sql -q "..." --format=table` BEFORE providing insights. Flow: 1) Show table 2) Add insights/summaries 3) Offer CSV. Never skip showing the table
-- [ ] **--format=table FLAG (P0 CRITICAL)**: EVERY `snow sql` command MUST include `--format=table`. Command format: `snow sql -q "..." --format=table`. Without this flag, no table will display to user
+- [ ] **SHOW TABLE FIRST (P0 CRITICAL)**: For small results (≤25 rows, <8 columns), you MUST display the actual ASCII table using `snow sql -q "..." --format=csv` BEFORE providing insights. Flow: 1) Show table 2) Add insights/summaries 3) Offer CSV. Never skip showing the table
+- [ ] **--format=csv FLAG (P0 CRITICAL)**: EVERY `snow sql` command MUST include `--format=csv`. Command format: `snow sql -q "..." --format=csv`. Without this flag, no table will display to user
 - [ ] Required Filters: `SERVICE_DATE = MAX(...)`, `AS_OF_DATE = 'Quarterly'`, `CRM_NET_ARR_USD > 0`
 - [ ] Standard Ordering: Auto-apply CASE statement (AMER→EMEA→APAC→LATAM→SMB→Digital)
 - [ ] Leader Filtering: Regional queries EXCLUDE SMB/Digital
@@ -366,7 +405,7 @@ ORDER BY arr_tier
 - [ ] TOTAL Row: Include with `UNION ALL`
 - [ ] **Opportunity Lists**: When query shows opportunities as ROWS (not aggregated), MUST include: `CRM_OPPORTUNITY_ID` + Total Booking/Pipeline column
 - [ ] **No Extra Columns**: Only include required columns + what user explicitly asked for (no product mix, percentages, or other analysis columns unless requested)
-- [ ] **Always Show Data (P0 CRITICAL)**: NEVER use phrases like "Full table shown above" unless you ACTUALLY displayed table data with `snow sql --format=table`. If no table was displayed, don't claim one was. Go straight to offering CSV export
+- [ ] **Always Show Data (P0 CRITICAL)**: NEVER use phrases like "Full table shown above" unless you ACTUALLY displayed table data with `snow sql --format=csv`. If no table was displayed, don't claim one was. Go straight to offering CSV export
 - [ ] **Calculation Accuracy & Number Formatting**: NEVER format numbers before calculations. Always calculate with raw numbers, format only in final SELECT. ALWAYS use thousand separators (commas) for readability: `TO_CHAR(number, 'FM999,999,999')`
 
 **⚠️ P1 - SHOULD CHECK (Important)**
@@ -1217,7 +1256,7 @@ When comparing periods (MoM, QoQ, YoY):
 
 3. **Execute with Snowflake CLI**
    ```bash
-   /Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "YOUR_QUERY" --format=table
+   /Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "YOUR_QUERY" --format=csv
    ```
 
 4. **Present results**
@@ -1726,7 +1765,7 @@ date +%s.%N > /tmp/claude_query_start_time
 Then at the end, calculate elapsed time in the SAME Bash call that shows results:
 ```bash
 # Show query results first
-snow sql -q "SELECT ..." --format=table
+snow sql -q "SELECT ..." --format=csv
 
 # Then show timing (in same Bash call)
 START=$(cat /tmp/claude_query_start_time 2>/dev/null || echo 0)
@@ -1764,7 +1803,7 @@ fi
 date +%s.%N > /tmp/claude_query_start_time
 
 # STEP 2: Process and display (SECOND Bash call - combines query + display + timing)
-# CRITICAL: Must include --format=table at the end
+# CRITICAL: Must include --format=csv at the end
 /Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "
 SELECT
     CASE
@@ -1786,7 +1825,7 @@ ORDER BY
     WHEN PRO_FORMA_REGION = 'LATAM' THEN 4
     ELSE 99
   END
-" --format=table
+" --format=csv
 
 # Show timing (in SAME Bash call)
 START=$(cat /tmp/claude_query_start_time 2>/dev/null || echo 0)
@@ -1807,7 +1846,7 @@ echo "💾 Export to CSV? (outputs/region_summary.csv)"
 ```
 
 **Key Points:**
-- ✅ Use `--format=table` for terminal display (readable ASCII table)
+- ✅ Use `--format=csv` for terminal display (readable ASCII table)
 - ✅ Calculate timing in same Bash call as display
 - ✅ Use fixed filename `/tmp/claude_query_start_time` (not $$)
 - ✅ This is the PRIMARY method - simple and readable
@@ -1826,8 +1865,8 @@ python script.py | display results
 
 **✅ CORRECT method for terminal display:**
 ```bash
-# ✅ Use --format=table for readable output
-snow sql -q "..." --format=table
+# ✅ Use --format=csv for readable output
+snow sql -q "..." --format=csv
 ```
 
 **For CSV export (if user requests):**
@@ -1955,35 +1994,35 @@ Generated 18 deals (3 per leader).
 **Key Rules:**
 1. ✅ **If you displayed a table** → OK to say "preview shown above" or "table above"
 2. ❌ **If you did NOT display a table** → Don't claim you did! Just offer CSV
-3. ✅ **Always try to show preview** with `snow sql --format=table LIMIT 5`
+3. ✅ **Always try to show preview** with `snow sql --format=csv LIMIT 5`
 4. ✅ **If preview fails or can't be shown** → Go straight to CSV, don't fake it
-5. ❌ **NEVER** use phrases like "Full table shown above", "The table above", "Here is the table" unless `--format=table` output appeared in your previous Bash tool result
+5. ❌ **NEVER** use phrases like "Full table shown above", "The table above", "Here is the table" unless `--format=csv` output appeared in your previous Bash tool result
 
-**🚨 DEFAULT: Show Table in Terminal**
+**🚨 DEFAULT: Show Markdown Table**
 
-**Unless** result is large (>25 rows OR ≥8 columns), **ALWAYS** display full table with `--format=table`.
+**Unless** result is large (>25 rows OR ≥8 columns), **ALWAYS** display full markdown table.
 
-**Small Results** (≤25 rows AND <8 columns) → **MUST show in terminal**
+**Small Results** (≤25 rows AND <8 columns) → **MUST show markdown table**
 - Examples: "AI penetration by leader", "Top 10 countries", "Account count by segment"
-- Workflow: Show full table → Offer "💾 Export to CSV?" → Save cached results if yes
+- Workflow: Run query → Parse CSV → Show full markdown table → Offer "💾 Export to CSV?" → Save cached results if yes
 - This is the DEFAULT mode - use it whenever possible
 
-**Large Results** (>25 rows OR ≥8 columns) → Auto-generate CSV with 5-row preview
+**Large Results** (>25 rows OR ≥8 columns) → Auto-generate CSV with 5-row markdown preview
 - Examples: "List all accounts with AI", "All opportunities vs competitors", "Wide tables with many columns"
-- Workflow: Run query with LIMIT 5 → Show preview → Save full query to CSV → Notify user
-- Only use this mode when table is too large for terminal
+- Workflow: Run query with LIMIT 5 → Parse CSV → Show 5-row markdown preview → Save full query to CSV → Notify user
+- Only use this mode when table is too large to display fully
 
 ### Decision Criteria
 
 **Row Count + Column Count:**
 ```
 1. Row count ≤ 25 AND Column count < 8:
-   - Show full table in terminal
+   - Show full markdown table
    - Offer CSV export (use cached results)
 
 2. Row count > 25 OR Column count ≥ 8:
-   - Auto-generate CSV
-   - Show preview (first 5 rows only)
+   - Auto-generate CSV file
+   - Show preview as markdown table (first 5 rows only)
    - Include summary: "Full list in CSV (N total rows)"
 ```
 
@@ -2044,13 +2083,13 @@ Service Platform         MegaCorp       $195K     Ada          Stage 4
 ### Implementation Pattern
 
 **For queries with ≤25 rows AND <8 columns:**
-1. Run query with `--format=table`
+1. Run query with `--format=csv`
 2. Show full table in terminal
 3. Offer CSV export: "💾 Export to CSV?"
 4. If yes → save cached results (don't re-query)
 
 **For queries with >25 rows OR ≥8 columns:**
-1. **Run preview query first** with `LIMIT 5` and `--format=table`
+1. **Run preview query first** with `LIMIT 5` and `--format=csv`
 2. **Show 5-row preview in terminal** (MANDATORY - never skip this step)
 3. Run full query and save to CSV
 4. Notify: "✅ Full list in CSV (N total rows)"
@@ -2058,7 +2097,7 @@ Service Platform         MegaCorp       $195K     Ada          Stage 4
 **Example for large datasets:**
 ```bash
 # Step 1: Show preview (MUST DO THIS - only 5 rows)
-snow sql -q "SELECT ... FROM ... WHERE ... ORDER BY ... LIMIT 5" --format=table
+snow sql -q "SELECT ... FROM ... WHERE ... ORDER BY ... LIMIT 5" --format=csv
 
 # Step 2: Generate full CSV
 snow sql -q "SELECT ... FROM ... WHERE ... ORDER BY ..." --format=csv > outputs/filename.csv
