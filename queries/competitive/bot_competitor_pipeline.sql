@@ -14,6 +14,7 @@
  *   - PRODUCT_ARR_USD > 0 (pipeline ARR, not booking ARR)
  *   - opportunity_is_commissionable = TRUE (data quality filter)
  *   - stage_2_plus_date_c IS NOT NULL (data quality filter)
+ *   - OPPORTUNITY_TYPE IN ('Expansion', 'New Business') (data quality filter)
  *   - PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot') (AI products)
  *   - MAIN_COMPETITOR or MAIN_LOST_COMPETITOR (competitor fields from COMPETITORS_T)
  *
@@ -67,6 +68,7 @@ WITH ai_pipeline AS (
     AND p.opportunity_is_commissionable = TRUE
     AND p.stage_2_plus_date_c IS NOT NULL
     AND p.DATE_LABEL = 'today'
+    AND p.OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
     AND p.PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot')
     AND p.CLOSEDATE >= '2026-02-01'  -- Adjust time period here
   GROUP BY

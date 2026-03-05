@@ -260,6 +260,7 @@ WHERE rec_1_priority IN (1, 2)  -- Only high-priority recommendations
 WHERE DATE_LABEL = 'today'
   AND opportunity_is_commissionable = TRUE
   AND stage_2_plus_date_c IS NOT NULL
+  AND OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
 
   -- For closed bookings, also add:
   AND OPPORTUNITY_STATUS = 'Closed'
@@ -877,6 +878,7 @@ WHERE OPPORTUNITY_STATUS = 'Closed'
   AND opportunity_is_commissionable = TRUE
   AND stage_2_plus_date_c IS NOT NULL
   AND DATE_LABEL = 'today'
+  AND OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
   AND PRODUCT IN ('Ultimate', 'Ultimate_AR')
 GROUP BY OPPORTUNITY_TYPE
 ORDER BY OPPORTUNITY_TYPE DESC  -- New Business first
@@ -887,6 +889,7 @@ ORDER BY OPPORTUNITY_TYPE DESC  -- New Business first
 - `opportunity_is_commissionable = TRUE`
 - `stage_2_plus_date_c IS NOT NULL`
 - `DATE_LABEL = 'today'`
+- `OPPORTUNITY_TYPE IN ('Expansion', 'New Business')`
 
 ### AI Penetration Patterns
 

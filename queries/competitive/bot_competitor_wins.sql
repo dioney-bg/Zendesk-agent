@@ -14,6 +14,7 @@
  *   - PRODUCT_BOOKING_ARR_USD > 0 (booking ARR, not pipeline ARR)
  *   - opportunity_is_commissionable = TRUE (data quality filter)
  *   - stage_2_plus_date_c IS NOT NULL (data quality filter)
+ *   - OPPORTUNITY_TYPE IN ('Expansion', 'New Business') (data quality filter)
  *   - PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot') (AI products)
  *   - PRIMARY_COMPETITOR_NEW__C (competitor field from DDG table)
  *
@@ -66,6 +67,7 @@ WITH ai_bookings AS (
     AND p.opportunity_is_commissionable = TRUE
     AND p.stage_2_plus_date_c IS NOT NULL
     AND p.DATE_LABEL = 'today'
+    AND p.OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
     AND p.PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot')
     AND p.CLOSEDATE >= '2025-01-01'  -- Adjust time period here
     AND p.CLOSEDATE <= CURRENT_DATE()
