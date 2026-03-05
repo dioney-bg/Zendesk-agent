@@ -205,9 +205,13 @@ source ~/.zshrc
 ```
 
 **Current Setup:**
-- ✅ Production: `~/Zendesk-agent/` (main branch)
-- ✅ Test: `~/Zendesk-agent-test/` (test-v1.5 branch)
+- ✅ Production: `~/Zendesk-agent/` (main branch) - **Auto-update ENABLED**
+- ✅ Test: `~/Zendesk-agent-test/` (test-v1.5 branch) - **Auto-update DISABLED**
 - ✅ Alias: `strategy-agent-test` command available
+
+**Key Difference:**
+- **Production** auto-pulls from GitHub when you run `strategy-agent`
+- **Test** does NOT auto-update, so you can make changes freely without conflicts
 
 ### Regular Workflow (Daily Use)
 
@@ -320,7 +324,18 @@ strategy-agent-test
 # When ready: cd ~/Zendesk-agent && git merge test-vX.X && git push
 ```
 
-### Scenario 3: Abandon Test and Start Fresh
+### Scenario 3: Sync Test with Production Updates
+```bash
+# If production got updates and you want them in test
+cd ~/Zendesk-agent-test
+git checkout main
+git pull origin main  # Get latest from production
+git checkout test-vX.X
+git merge main  # Merge production updates into test
+# Continue testing with latest production changes
+```
+
+### Scenario 4: Abandon Test and Start Fresh
 ```bash
 cd ~/Zendesk-agent-test
 git checkout main
@@ -329,13 +344,13 @@ git branch -D test-vX.X  # Delete old test branch
 git checkout -b test-vY.Y  # Create new test branch
 ```
 
-### Scenario 4: Check Which Environment You're In
+### Scenario 5: Check Which Environment You're In
 ```bash
 cd ~/Zendesk-agent-test && git branch  # Shows * test-vX.X
 cd ~/Zendesk-agent && git branch       # Shows * main
 ```
 
-### Scenario 5: See What Changed in Test
+### Scenario 6: See What Changed in Test
 ```bash
 cd ~/Zendesk-agent-test
 git diff main  # Shows all changes vs production
@@ -345,7 +360,9 @@ git diff main  # Shows all changes vs production
 
 ## 🎯 Remember
 
-- **Blue banner** = Production (affects team)
-- **Yellow banner** = Test (only affects you)
+- **Blue banner** = Production (affects team, auto-updates enabled)
+- **Yellow banner** = Test (only affects you, auto-update disabled)
 - **Always test before merging** to main
 - **Different directories = separate auto-memory** (automatic isolation)
+- **Test environment won't auto-update** - make changes freely without conflicts
+- **Promote when ready** - merge to main and push to share with team
