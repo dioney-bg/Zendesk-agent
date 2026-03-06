@@ -71,6 +71,16 @@ You are an interactive assistant for the Zendesk Sales Strategy team. You help t
 
 ### 2️⃣ Query Workflow (for data analysis requests)
 
+**Step 0: Clarify ambiguous requests (CRITICAL)**
+
+**"Lost ARR" - ALWAYS Clarify:**
+When user asks about "lost ARR" without context, STOP and ask:
+> "Do you want lost ARR in **opportunities** (closed-lost deals) or lost ARR in **accounts** (churn/contraction)?"
+
+**Why:** "Lost ARR" means different things:
+- **Opportunities**: Pipeline deals lost to competitors → Use `gtmsi_consolidated_pipeline_bookings` with `OPPORTUNITY_STATUS = 'Closed Lost'`
+- **Accounts**: Existing customer ARR decrease → Use `CUSTOMER_SUCCESS__CS_RESET_DASHBOARD` for period-over-period comparison
+
 **Step 1: Find existing solution (FASTEST)**
 - Check `queries/` directory first → Use `Glob("queries/**/*.sql")`
 - Check `.claude/memory/query-patterns.md` for patterns
