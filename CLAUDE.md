@@ -572,8 +572,9 @@ See "Opportunity-Level Output Guidelines" section below for details.
 - `PRODUCT` - Product name ('Ultimate', 'Ultimate_AR', 'Copilot', etc.)
 - `PRODUCT_ARR_USD` - Pipeline ARR (for open opportunities)
 - `PRODUCT_BOOKING_ARR_USD` - Booking ARR (for closed opportunities)
-- `DEPARTMENT_OR_USAGE_C` - Department/usage (ES product only, requires cleaning)
 - `DATE_LABEL` - Use 'today' for current snapshot
+
+**Note:** `DEPARTMENT_OR_USAGE_C` (for ES) is NOT in this table - see ES Department section below
 
 **Required Filters (Data Quality):**
 
@@ -613,21 +614,27 @@ WHERE PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot')
 -- Copilot (specific product)
 WHERE PRODUCT = 'Copilot'
 
--- Employee Service (ALWAYS include USE_CASE_C filter + department cleaning!)
+-- Employee Service (ALWAYS include USE_CASE_C filter!)
 WHERE PRODUCT IN ('ES')
   AND USE_CASE_C LIKE 'Internal%'
--- For ES, also include cleaned department column:
+
+-- For ES department info, MUST join to SALESFORCE_OPPORTUNITY_BCV:
+-- DEPARTMENT_OR_USAGE_C is NOT in gtmsi_consolidated_pipeline_bookings!
+LEFT JOIN CLEANSED.SALESFORCE.SALESFORCE_OPPORTUNITY_BCV opp_detail
+  ON main_table.CRM_OPPORTUNITY_ID = opp_detail.ID
+
+-- Include both raw and cleaned department columns:
 SELECT
   ...,
+  opp_detail.DEPARTMENT_OR_USAGE_C,  -- Raw (can have semicolons)
   COALESCE(
     IFF(
-      DEPARTMENT_OR_USAGE_C LIKE '%;%',
+      opp_detail.DEPARTMENT_OR_USAGE_C LIKE '%;%',
       'Multi-Department',
-      DEPARTMENT_OR_USAGE_C
+      opp_detail.DEPARTMENT_OR_USAGE_C
     ),
     'Unknown'
   ) AS DEPARTMENT_CLEANED
-FROM ...
 
 -- Quality & Workforce products
 WHERE PRODUCT IN ('QA', 'WEM', 'WFM')
@@ -1409,27 +1416,42 @@ Users memorize commands → Users run `make` commands → Users see results
 
 ### Competitive Analysis Patterns
 
+**When asked for competitor information, use these data sources:**
+
+**Primary Source (Recommended):**
+- Table: `functional.gtm_sales_ops.competitors_t`
+- Use for both open and closed opportunities
+- Check actual column names in table (structure may vary)
+
+**Raw Source (Fallback):**
+- Table: `cleansed.salesforce.salesforce_opportunity_bcv`
+- Column: `primary_competitor_new_c` (lowercase with underscores)
+- Contains semicolon-separated competitor list (e.g., "Ada;Forethought")
+- Join on: opportunity ID (column name is `ID` in BCV table)
+
+**Example Usage:**
+```sql
+-- Join to get competitor information
+LEFT JOIN cleansed.salesforce.salesforce_opportunity_bcv opp
+  ON main_table.CRM_OPPORTUNITY_ID = opp.ID
+
+SELECT
+  ...,
+  COALESCE(opp.primary_competitor_new_c, 'None Listed') as main_competitor
+```
+
 **Pattern: Bot Competitor Wins**
 - Template: `queries/competitive/bot_competitor_wins.sql`
 - User asks: "AI Agent wins vs Ada" or "Deals we closed against bot competitors"
-- Technical details:
-  - Uses: DDG_DASHBOARD_OPP_PLUS_QUOTE table
-  - Field: PRIMARY_COMPETITOR_NEW__C (case insensitive)
-  - ARR: PRODUCT_BOOKING_ARR_USD
-  - Competitors: Ada, Forethought, Sierra, Decagon
+- Use competitor data sources above to get competitor information
+- Filter for specific competitors using ILIKE for case-insensitive search
 - Adaptable: time period, top N, specific competitors
 
 **Pattern: Bot Competitor Pipeline**
 - Template: `queries/competitive/bot_competitor_pipeline.sql`
 - User asks: "Open opportunities vs bot competitors" or "Pipeline against Ada"
-- Technical details:
-  - Uses: COMPETITORS_T table
-  - Field: MAIN_COMPETITOR/MAIN_LOST_COMPETITOR (lowercase exact)
-  - ARR: PRODUCT_ARR_USD
-  - Competitors: ada, forethought, sierra, decagon
+- Use competitor data sources above
 - Adaptable: close date filter, top N, specific competitors
-
-**CRITICAL DIFFERENCE**: Wins vs Pipeline use different tables and fields!
 
 ### Opportunity Type Analysis Patterns
 
