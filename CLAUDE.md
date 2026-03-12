@@ -614,9 +614,8 @@ WHERE PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot')
 -- Copilot (specific product)
 WHERE PRODUCT = 'Copilot'
 
--- Employee Service (ALWAYS include USE_CASE_C filter!)
+-- Employee Service
 WHERE PRODUCT IN ('ES')
-  AND USE_CASE_C LIKE 'Internal%'
 
 -- For ES department info, MUST join to SALESFORCE_OPPORTUNITY_BCV:
 -- DEPARTMENT_OR_USAGE_C is NOT in gtmsi_consolidated_pipeline_bookings!
@@ -651,7 +650,7 @@ WHERE PRODUCT IN ('Suite', 'Contact_Center', 'ADPP')
 - **"AI Agents"** (specific) → Use `'Ultimate', 'Ultimate_AR'` only
 - **"AI" / "AI products"** (broad) → Use `'Ultimate', 'Ultimate_AR', 'Copilot'`
 - **"Copilot"** (specific) → Use `'Copilot'`
-- **"ES" / "Employee Service"** → Use `'ES'` + `USE_CASE_C LIKE 'Internal%'` (REQUIRED!)
+- **"ES" / "Employee Service"** → Use `'ES'`
 - **"Suite" / "Seats"** → Use `'Suite'` (common synonym)
 - **Specific product name** → Match to appropriate filter
 
@@ -793,7 +792,6 @@ AND p.PRODUCT = 'Copilot'
 
 -- For ES (Employee Service):
 AND p.PRODUCT = 'ES'
-AND p.USE_CASE_C LIKE 'Internal%'  -- ✅ REQUIRED for ES
 
 -- For QA, WEM, or WFM:
 AND p.PRODUCT IN ('QA', 'WEM', 'WFM')  -- Or specific one user asked for
@@ -816,7 +814,6 @@ SELECT
     PRODUCT_BOOKING_ARR_USD as es_arr
 FROM gtmsi_consolidated_pipeline_bookings
 WHERE PRODUCT = 'ES'
-  AND USE_CASE_C LIKE 'Internal%'
   -- ❌ MISSING: CRM_OPPORTUNITY_ID column
   -- ❌ MISSING: Join to PRODUCT = 'Total Booking' for total_booking column
 ...
@@ -830,7 +827,7 @@ When user asks: "Show me {PRODUCT} opportunities..."
 
 1. **Keep the pattern** (CRM_OPPORTUNITY_ID + Total Booking join)
 2. **Change the product filter** to match user request:
-   - "ES opportunities" → `p.PRODUCT = 'ES' AND p.USE_CASE_C LIKE 'Internal%'`
+   - "ES opportunities" → `p.PRODUCT = 'ES'`
    - "Suite opportunities" → `p.PRODUCT = 'Suite'`
    - "QA opportunities" → `p.PRODUCT = 'QA'`
    - "AI opportunities" → `p.PRODUCT IN ('Ultimate', 'Ultimate_AR', 'Copilot')`
