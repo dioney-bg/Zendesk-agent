@@ -853,6 +853,148 @@ FROM gtmsi_consolidated_pipeline_bookings
 - **"AE"** or **"sales rep"** → Use `CORRECT_OWNER_NAME`
 - **"Manager"** or **"FLM"** (First Line Manager) → Use `OPPORTUNITY_OWNER_MANAGER_NAME`
 
+### Opportunity Stage History Analysis
+
+**CRITICAL**: When analyzing stage history for opportunities (e.g., "filter for Stage 4+ deals", "opportunities that reached Stage 5"), use this standard CTE pattern to deduplicate stage history records.
+
+**Source Table**: `CLEANSED.SALESFORCE.SALESFORCE_OPPORTUNITY_HISTORY_SCD2`
+
+**Why Deduplication is Needed:**
+The history table can contain duplicate records for the same opportunity/stage/timestamp combination. This CTE ensures you get unique stage entries per opportunity.
+
+**Standard Pattern:**
+```sql
+WITH stage_history_clean AS (
+    SELECT
+        h.OPPORTUNITY_ID,
+        h.STAGE_NAME,
+        h.VALID_FROM_TIMESTAMP,
+        h.VALID_TO_TIMESTAMP,
+        ROW_NUMBER() OVER (
+            PARTITION BY h.OPPORTUNITY_ID, h.STAGE_NAME, h.VALID_FROM_TIMESTAMP
+            ORDER BY CASE WHEN h.VALID_TO_TIMESTAMP = '9999-12-31' THEN 1 ELSE 0 END,
+                     h.VALID_TO_TIMESTAMP DESC
+        ) as rn
+    FROM CLEANSED.SALESFORCE.SALESFORCE_OPPORTUNITY_HISTORY_SCD2 h
+    WHERE EXISTS (
+        SELECT 1 FROM all_opportunities ao
+        WHERE h.OPPORTUNITY_ID = ao.CRM_OPPORTUNITY_ID
+    )
+)
+-- Then use: WHERE rn = 1 to get deduplicated records
+SELECT DISTINCT OPPORTUNITY_ID
+FROM stage_history_clean
+WHERE rn = 1
+    AND (STAGE_NAME LIKE '04 -%' OR STAGE_NAME LIKE '05 -%' OR STAGE_NAME LIKE '06 -%')
+```
+
+**Key Points:**
+- The `ROW_NUMBER()` partitions by opportunity, stage, and valid_from to remove duplicates
+- The `ORDER BY` prioritizes current records (9999-12-31) and latest valid_to dates
+- The `EXISTS` clause limits history to only relevant opportunities (improves performance)
+- Always filter `WHERE rn = 1` after this CTE to get unique stage records
+
+**Stage Name Patterns:**
+- Stage 2+: `STAGE_NAME LIKE '02 -%'` or higher
+- Stage 4+: `STAGE_NAME LIKE '04 -%' OR STAGE_NAME LIKE '05 -%' OR STAGE_NAME LIKE '06 -%'`
+- Specific stage: `STAGE_NAME LIKE '05 -%'` (e.g., "05 - Secure Commitment")
+
+**Common Use Cases:**
+- Filter lost opportunities that reached Stage 4+ before closing
+- Analyze time spent in each stage
+- Identify opportunities that skipped stages
+- Track stage progression patterns
+
+### Lost Opportunity Reason Analysis
+
+**CRITICAL**: When analyzing why opportunities were lost, use the `DEAL_LOST_REASONMULTI__C` field from the pipeline bookings table.
+
+**Source Table**: `functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings`
+
+**Lost Reason Field**: `DEAL_LOST_REASONMULTI__C`
+- Contains the primary reason an opportunity was marked as Lost
+- Can be NULL (use `COALESCE(DEAL_LOST_REASONMULTI__C, 'Not Specified')`)
+- Multiple reasons may be semicolon-separated in some cases
+
+**Standard Lost Opportunity Filters:**
+```sql
+WHERE DATE_LABEL = 'today'
+    AND OPPORTUNITY_STATUS = 'Lost'
+    AND opportunity_is_commissionable = TRUE
+    AND stage_2_plus_date_c IS NOT NULL
+    AND OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
+    AND PRODUCT_ARR_USD > 0  -- Use PRODUCT_ARR_USD for lost opps (not BOOKING)
+    AND PRODUCT = 'Total Booking'
+```
+
+**Standard Lost Reason Categories:**
+
+Common reasons to track individually:
+- `Not Specified`
+- `Non-responsive / No Relationship`
+- `Unqualified / No Opportunity`
+- `Duplicate`
+- `Other`
+- `Timing / Seasonal`
+- `Lost Budget`
+- `Pricing`
+- `Use Case Not a Fit`
+- `Feature`
+- `Bought Through Self-Service`
+
+**Pattern for Categorizing Lost Reasons:**
+```sql
+WITH lost_opps AS (
+    SELECT
+        YEAR(CLOSEDATE) as year,
+        COALESCE(DEAL_LOST_REASONMULTI__C, 'Not Specified') as lost_reason,
+        PRODUCT_ARR_USD
+    FROM functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings
+    WHERE DATE_LABEL = 'today'
+        AND OPPORTUNITY_STATUS = 'Lost'
+        AND opportunity_is_commissionable = TRUE
+        AND stage_2_plus_date_c IS NOT NULL
+        AND OPPORTUNITY_TYPE IN ('Expansion', 'New Business')
+        AND YEAR(CLOSEDATE) IN (2024, 2025)
+        AND PRODUCT_ARR_USD > 0
+        AND PRODUCT = 'Total Booking'
+),
+categorized AS (
+    SELECT
+        year,
+        CASE
+            WHEN lost_reason IN (
+                'Not Specified',
+                'Non-responsive / No Relationship',
+                'Unqualified / No Opportunity',
+                'Duplicate',
+                'Other',
+                'Timing / Seasonal',
+                'Lost Budget',
+                'Pricing',
+                'Use Case Not a Fit',
+                'Feature',
+                'Bought Through Self-Service'
+            ) THEN lost_reason
+            ELSE 'All Other Reasons'
+        END as lost_reason_category,
+        PRODUCT_ARR_USD
+    FROM lost_opps
+)
+SELECT
+    lost_reason_category,
+    COUNT(*) as lost_count,
+    ROUND(SUM(PRODUCT_ARR_USD) / 1000000, 1) as lost_arr_millions
+FROM categorized
+GROUP BY lost_reason_category
+```
+
+**Key Points:**
+- Always use `PRODUCT_ARR_USD` for lost opportunities (not `PRODUCT_BOOKING_ARR_USD`)
+- Group uncommon lost reasons into "All Other Reasons" category
+- Track by year, leader, opportunity type (New Business vs Expansion)
+- Common breakdowns: by leader, by GTM team, by segment
+
 ### Time-Based Comparisons (MoM/YoY/QoQ)
 
 **CRITICAL**: When doing time-based comparisons requiring different snapshot dates:
