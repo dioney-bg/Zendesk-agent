@@ -995,6 +995,55 @@ GROUP BY lost_reason_category
 - Track by year, leader, opportunity type (New Business vs Expansion)
 - Common breakdowns: by leader, by GTM team, by segment
 
+### Further Loss Detail (Additional Context)
+
+**CRITICAL**: For deeper insight into why opportunities were lost, use the `FURTHER_LOSS_DETAIL_C` field which contains free-text explanations.
+
+**Source Table**: `cleansed.salesforce.salesforce_opportunity_bcv`
+
+**Additional Field**: `FURTHER_LOSS_DETAIL_C`
+- Contains detailed text explanation of why opportunity was lost
+- Can be NULL
+- Often provides context that contradicts or clarifies the primary lost reason
+- Useful for identifying misclassified opportunities
+
+**How to Join:**
+```sql
+LEFT JOIN cleansed.salesforce.salesforce_opportunity_bcv opp
+    ON p.CRM_OPPORTUNITY_ID = opp.ID
+
+SELECT
+    p.CRM_OPPORTUNITY_ID,
+    p.DEAL_LOST_REASONMULTI__C as primary_lost_reason,
+    opp.FURTHER_LOSS_DETAIL_C as further_loss_detail
+FROM functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings p
+LEFT JOIN cleansed.salesforce.salesforce_opportunity_bcv opp
+    ON p.CRM_OPPORTUNITY_ID = opp.ID
+WHERE p.OPPORTUNITY_STATUS = 'Lost'
+```
+
+**Common Use Cases:**
+- **Data Quality Checks**: Find opportunities where further detail doesn't match primary reason
+- **Misclassification Analysis**: Identify lost reasons that should be reclassified
+- **Root Cause Analysis**: Understand specific reasons beyond categorical labels
+
+**Example - Finding Misclassified "Non-responsive" Opportunities:**
+```sql
+WHERE p.DEAL_LOST_REASONMULTI__C = 'Non-responsive / No Relationship'
+    AND opp.FURTHER_LOSS_DETAIL_C IS NOT NULL
+    AND opp.FURTHER_LOSS_DETAIL_C NOT ILIKE '%responsive%'
+    AND opp.FURTHER_LOSS_DETAIL_C NOT ILIKE '%relationship%'
+    AND opp.FURTHER_LOSS_DETAIL_C NOT ILIKE '%off the grid%'
+    AND opp.FURTHER_LOSS_DETAIL_C NOT ILIKE '%went dark%'
+    AND opp.FURTHER_LOSS_DETAIL_C NOT ILIKE '%no contact%'
+```
+
+**Common Misclassifications Found:**
+- "Non-responsive" but detail shows → "Timing / Seasonal" (customer not ready, revisiting later)
+- "Non-responsive" but detail shows → "Feature" (waiting for feature release, product gaps)
+- "Non-responsive" but detail shows → "Competitive" (moved to competitor)
+- "Non-responsive" but detail shows → "Unqualified" (customer explicitly not interested)
+
 ### Time-Based Comparisons (MoM/YoY/QoQ)
 
 **CRITICAL**: When doing time-based comparisons requiring different snapshot dates:
