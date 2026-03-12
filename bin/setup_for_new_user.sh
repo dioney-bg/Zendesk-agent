@@ -357,7 +357,8 @@ else
     print_status "Configuring Snowflake connection..."
 
     # Add connection using snow connection add command
-    $SNOW_CLI connection add zendesk \
+    $SNOW_CLI -c connection add \
+        --connection-name zendesk \
         --account ZENDESK-GLOBAL \
         --user "$USER_EMAIL" \
         --authenticator externalbrowser \
@@ -370,7 +371,7 @@ else
     echo ""
 
     # Test connection (will trigger browser authentication)
-    $SNOW_CLI connection test -c zendesk
+    $SNOW_CLI -c connection test --connection zendesk
 fi
 
 # Test connection with a simple query
@@ -386,7 +387,7 @@ else
     echo "  3. Your account has necessary permissions"
     echo ""
     echo "💡 To retry authentication manually:"
-    echo "   snow connection test -c zendesk"
+    echo "   snow -c connection test --connection zendesk"
     exit 1
 fi
 
