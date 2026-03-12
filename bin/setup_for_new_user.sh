@@ -294,32 +294,84 @@ echo "Step 4: Configuring Snowflake Connection"
 echo "════════════════════════════════════════════════════════════════"
 echo ""
 
-print_status "Let's set up your Snowflake connection..."
+print_status "Checking for existing Snowflake connection..."
 echo ""
-echo "📋 Snowflake Account: ZENDESK-GLOBAL (configured for all team members)"
-echo "🔐 Authentication: SSO (browser-based)"
-echo ""
-
-# Get user email
-read -p "Enter your Zendesk email (e.g., yourname@zendesk.com): " USER_EMAIL
-
-# Validate email format
-if [[ ! "$USER_EMAIL" =~ @zendesk\.com$ ]]; then
-    print_warning "Email should end with @zendesk.com"
-    read -p "Continue anyway? (y/n): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_error "Setup cancelled. Please run again with correct email."
-        exit 1
-    fi
-fi
 
 # Use default warehouse
 WAREHOUSE="COEFFICIENT_WH"
-echo ""
-print_success "Using warehouse: $WAREHOUSE"
 
-# Update config.yaml
+# First check if 'zendesk' connection exists
+if $SNOW_CLI connection list 2>/dev/null | grep -q "zendesk"; then
+    print_success "Connection 'zendesk' found"
+
+    # Test if it works
+    if $SNOW_CLI sql -q "SELECT CURRENT_USER()" --connection zendesk 2>/dev/null | grep -q "@"; then
+        CURRENT_USER=$($SNOW_CLI sql -q "SELECT CURRENT_USER()" --connection zendesk 2>/dev/null | grep "@")
+        print_success "Already authenticated as: $CURRENT_USER"
+
+        # Extract email from current user for config.yaml
+        USER_EMAIL="$CURRENT_USER"
+    else
+        print_warning "Connection exists but not authenticated yet"
+        echo ""
+        echo "Opening browser for authentication..."
+        echo "Please complete the authentication in your browser."
+        echo ""
+        $SNOW_CLI connection test --connection zendesk
+
+        # Get authenticated user after connection test
+        if $SNOW_CLI sql -q "SELECT CURRENT_USER()" --connection zendesk 2>/dev/null | grep -q "@"; then
+            USER_EMAIL=$($SNOW_CLI sql -q "SELECT CURRENT_USER()" --connection zendesk 2>/dev/null | grep "@")
+        else
+            print_error "Authentication failed. Please try again."
+            exit 1
+        fi
+    fi
+else
+    print_warning "No 'zendesk' connection found."
+    echo ""
+    print_status "Let's set up your Snowflake connection..."
+    echo ""
+    echo "📋 Snowflake Account: ZENDESK-GLOBAL (configured for all team members)"
+    echo "🔐 Authentication: SSO (browser-based)"
+    echo ""
+
+    # Get user email
+    read -p "Enter your Zendesk email (e.g., yourname@zendesk.com): " USER_EMAIL
+
+    # Validate email format
+    if [[ ! "$USER_EMAIL" =~ @zendesk\.com$ ]]; then
+        print_warning "Email should end with @zendesk.com"
+        read -p "Continue anyway? (y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_error "Setup cancelled. Please run again with correct email."
+            exit 1
+        fi
+    fi
+
+    echo ""
+    print_status "Creating Snowflake connection..."
+
+    # Add connection using snow connection add command
+    $SNOW_CLI connection add \
+        --connection-name zendesk \
+        --account ZENDESK-GLOBAL \
+        --user "$USER_EMAIL" \
+        --authenticator externalbrowser \
+        --warehouse "$WAREHOUSE"
+
+    print_success "Configuration created"
+    echo ""
+    echo "Opening browser for authentication..."
+    echo "Please complete the authentication in your browser."
+    echo ""
+
+    # Test connection (will trigger browser authentication)
+    $SNOW_CLI connection test --connection zendesk
+fi
+
+# Update config.yaml with user info
 print_status "Updating configuration..."
 cat > config/config.yaml.tmp << EOF
 # Sales Strategy Reporting Agent - Configuration
@@ -346,47 +398,6 @@ echo "════════════════════════�
 echo "Step 5: Testing Snowflake Connection"
 echo "════════════════════════════════════════════════════════════════"
 echo ""
-
-print_status "Checking if you're already authenticated..."
-
-# First check if 'zendesk' connection exists
-if $SNOW_CLI connection list 2>/dev/null | grep -q "zendesk"; then
-    print_success "Connection 'zendesk' found"
-
-    # Test if it works
-    if $SNOW_CLI sql -q "SELECT CURRENT_USER()" --connection zendesk 2>/dev/null | grep -q "@"; then
-        CURRENT_USER=$($SNOW_CLI sql -q "SELECT CURRENT_USER()" --connection zendesk 2>/dev/null | grep "@")
-        print_success "Already authenticated as: $CURRENT_USER"
-    else
-        print_warning "Connection exists but not authenticated yet"
-        echo ""
-        echo "Opening browser for authentication..."
-        echo "Please complete the authentication in your browser."
-        echo ""
-        $SNOW_CLI connection test --connection zendesk
-    fi
-else
-    print_warning "No 'zendesk' connection found. Creating it..."
-    echo ""
-    print_status "Configuring Snowflake connection..."
-
-    # Add connection using snow connection add command
-    $SNOW_CLI connection add \
-        --connection-name zendesk \
-        --account ZENDESK-GLOBAL \
-        --user "$USER_EMAIL" \
-        --authenticator externalbrowser \
-        --warehouse "$WAREHOUSE"
-
-    print_success "Configuration updated"
-    echo ""
-    echo "Opening browser for authentication..."
-    echo "Please complete the authentication in your browser."
-    echo ""
-
-    # Test connection (will trigger browser authentication)
-    $SNOW_CLI connection test --connection zendesk
-fi
 
 # Test connection with a simple query
 print_status "Testing connection..."
