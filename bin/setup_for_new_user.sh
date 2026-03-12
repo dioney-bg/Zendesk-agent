@@ -350,12 +350,12 @@ echo ""
 print_status "Checking if you're already authenticated..."
 
 # First check if 'zendesk' connection exists
-if $SNOW_CLI -c connection list 2>/dev/null | grep -q "zendesk"; then
+if $SNOW_CLI connection list 2>/dev/null | grep -q "zendesk"; then
     print_success "Connection 'zendesk' found"
 
     # Test if it works
-    if $SNOW_CLI -c sql -q "SELECT CURRENT_USER()" --connection zendesk 2>/dev/null | grep -q "@"; then
-        CURRENT_USER=$($SNOW_CLI -c sql -q "SELECT CURRENT_USER()" --connection zendesk 2>/dev/null | grep "@")
+    if $SNOW_CLI sql -q "SELECT CURRENT_USER()" --connection zendesk 2>/dev/null | grep -q "@"; then
+        CURRENT_USER=$($SNOW_CLI sql -q "SELECT CURRENT_USER()" --connection zendesk 2>/dev/null | grep "@")
         print_success "Already authenticated as: $CURRENT_USER"
     else
         print_warning "Connection exists but not authenticated yet"
@@ -363,7 +363,7 @@ if $SNOW_CLI -c connection list 2>/dev/null | grep -q "zendesk"; then
         echo "Opening browser for authentication..."
         echo "Please complete the authentication in your browser."
         echo ""
-        $SNOW_CLI -c connection test --connection zendesk
+        $SNOW_CLI connection test --connection zendesk
     fi
 else
     print_warning "No 'zendesk' connection found. Creating it..."
@@ -371,7 +371,7 @@ else
     print_status "Configuring Snowflake connection..."
 
     # Add connection using snow connection add command
-    $SNOW_CLI -c connection add \
+    $SNOW_CLI connection add \
         --connection-name zendesk \
         --account ZENDESK-GLOBAL \
         --user "$USER_EMAIL" \
@@ -385,12 +385,12 @@ else
     echo ""
 
     # Test connection (will trigger browser authentication)
-    $SNOW_CLI -c connection test --connection zendesk
+    $SNOW_CLI connection test --connection zendesk
 fi
 
 # Test connection with a simple query
 print_status "Testing connection..."
-if $SNOW_CLI -c sql -q "SELECT CURRENT_DATE()" --connection zendesk > /dev/null 2>&1; then
+if $SNOW_CLI sql -q "SELECT CURRENT_DATE()" --connection zendesk > /dev/null 2>&1; then
     print_success "Snowflake connection works!"
 else
     print_error "Snowflake connection test failed."
@@ -401,7 +401,7 @@ else
     echo "  3. Your account has necessary permissions"
     echo ""
     echo "💡 To retry authentication manually:"
-    echo "   snow -c connection test --connection zendesk"
+    echo "   snow connection test -c zendesk"
     exit 1
 fi
 
