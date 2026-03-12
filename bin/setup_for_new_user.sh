@@ -354,13 +354,26 @@ if $SNOW_CLI sql -q "SELECT CURRENT_USER()" 2>/dev/null | grep -q "@"; then
 else
     print_warning "Not authenticated with Snowflake."
     echo ""
+    print_status "Configuring Snowflake connection..."
+
+    # Add connection using snow connection add command
+    $SNOW_CLI connection add zendesk \
+        --account ZENDESK-GLOBAL \
+        --user "$USER_EMAIL" \
+        --authenticator externalbrowser \
+        --warehouse "$WAREHOUSE"
+
+    print_success "Configuration updated"
+    echo ""
     echo "Opening browser for authentication..."
     echo "Please complete the authentication in your browser."
     echo ""
-    $SNOW_CLI login
+
+    # Test connection (will trigger browser authentication)
+    $SNOW_CLI connection test -c zendesk
 fi
 
-# Test connection
+# Test connection with a simple query
 print_status "Testing connection..."
 if $SNOW_CLI sql -q "SELECT CURRENT_DATE()" > /dev/null 2>&1; then
     print_success "Snowflake connection works!"
@@ -368,9 +381,12 @@ else
     print_error "Snowflake connection test failed."
     echo ""
     echo "Please check:"
-    echo "  1. You completed authentication"
+    echo "  1. You completed authentication in the browser"
     echo "  2. You have access to warehouse: $WAREHOUSE"
     echo "  3. Your account has necessary permissions"
+    echo ""
+    echo "💡 To retry authentication manually:"
+    echo "   snow connection test -c zendesk"
     exit 1
 fi
 
