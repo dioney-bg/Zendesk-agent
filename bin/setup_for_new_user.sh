@@ -348,11 +348,25 @@ echo "════════════════════════�
 echo ""
 
 print_status "Checking if you're already authenticated..."
-if $SNOW_CLI sql -q "SELECT CURRENT_USER()" 2>/dev/null | grep -q "@"; then
-    CURRENT_USER=$($SNOW_CLI sql -q "SELECT CURRENT_USER()" 2>/dev/null | grep "@")
-    print_success "Already authenticated as: $CURRENT_USER"
+
+# First check if 'zendesk' connection exists
+if $SNOW_CLI -c connection list 2>/dev/null | grep -q "zendesk"; then
+    print_success "Connection 'zendesk' found"
+
+    # Test if it works
+    if $SNOW_CLI -c sql -q "SELECT CURRENT_USER()" --connection zendesk 2>/dev/null | grep -q "@"; then
+        CURRENT_USER=$($SNOW_CLI -c sql -q "SELECT CURRENT_USER()" --connection zendesk 2>/dev/null | grep "@")
+        print_success "Already authenticated as: $CURRENT_USER"
+    else
+        print_warning "Connection exists but not authenticated yet"
+        echo ""
+        echo "Opening browser for authentication..."
+        echo "Please complete the authentication in your browser."
+        echo ""
+        $SNOW_CLI -c connection test --connection zendesk
+    fi
 else
-    print_warning "Not authenticated with Snowflake."
+    print_warning "No 'zendesk' connection found. Creating it..."
     echo ""
     print_status "Configuring Snowflake connection..."
 
@@ -376,7 +390,7 @@ fi
 
 # Test connection with a simple query
 print_status "Testing connection..."
-if $SNOW_CLI sql -q "SELECT CURRENT_DATE()" > /dev/null 2>&1; then
+if $SNOW_CLI -c sql -q "SELECT CURRENT_DATE()" --connection zendesk > /dev/null 2>&1; then
     print_success "Snowflake connection works!"
 else
     print_error "Snowflake connection test failed."
