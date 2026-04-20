@@ -19,8 +19,10 @@ help:
 	@echo "  make validate     Validate your setup"
 	@echo ""
 	@echo "Running Reports:"
-	@echo "  make run          Launch interactive menu"
-	@echo "  make ai-report    Generate AI Penetration Report"
+	@echo "  make run                    Launch interactive menu"
+	@echo "  make ai-report              Generate AI Penetration Report"
+	@echo "  make sales-report           Generate interactive FY27 sales report (HTML)"
+	@echo "  make ai-control-dashboard   Generate AI Control & Impact Dashboard (HTML)"
 	@echo ""
 	@echo "Ad-hoc Queries (Geographic):"
 	@echo "  make country-report             Top 5 countries by ARR and accounts"
@@ -142,3 +144,17 @@ sync:
 	@git push origin main
 	@echo "✅ Fork synced"
 	@echo "💡 Run: make install (to update dependencies)"
+
+# Generate interactive FY27 sales report
+sales-report:
+	@echo "📊 Generating interactive FY27 sales report..."
+	@bash scripts/generate_sales_report.sh
+
+# AI Control & Impact Dashboard (Complete Production Version)
+ai-control-dashboard:
+	@echo "📊 Generating AI Control & Impact Dashboard..."
+	@echo "   ✅ All 7 products with dynamic switching"
+	@echo "   ✅ Time comparisons (LQ, LM)"
+	@echo "   ✅ Pipeline and lost opportunity breakdown"
+	@echo ""
+	@bash scripts/build_ai_control_complete.sh

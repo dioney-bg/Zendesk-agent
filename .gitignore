@@ -26,9 +26,8 @@ config/token.json
 client_secret*.json
 
 # Outputs
-outputs/reports/
-outputs/data/
-outputs/logs/
+outputs/
+strategy-web/
 
 # Claude Code settings
 .claude/settings.local.json
@@ -74,3 +73,4 @@ config/reports/*_personal.yaml
 test_output/
 scratch/
 sandbox/
+backups/

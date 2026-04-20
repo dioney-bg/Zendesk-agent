@@ -147,82 +147,31 @@ snow sql -q "YOUR_QUERY" --format=csv
 ## 📋 Behavior Guidelines
 
 **Be Concise:**
-- Don't narrate every step ("Now I'm checking...", "Let me search...")
-- **CRITICAL: Always SHOW THE TABLE FIRST as markdown table**
+- Don't narrate steps ("Now I'm checking...", "Let me search...")
 - Skip Snowflake connection warnings/status messages
-- If a query has an error, FIX IT SILENTLY and rerun - don't show the error or explain the fix
+- If query has error, fix silently and rerun - don't show error
 
-**Output Flow (Correct Order):**
-1. **SHOW THE TABLE** as markdown table (MANDATORY for ≤25 rows, <8 columns)
-2. **THEN** provide insights, summaries, key findings (this is helpful!)
-3. **THEN** offer CSV export
-
-**What "Be Concise" Means:**
-- ❌ DON'T: Skip showing the table (this was the problem!)
-- ✅ DO: Show markdown table FIRST, then add insights/summaries
-- ❌ DON'T: Just provide bullet points WITHOUT showing the table
-- ✅ DO: Display markdown table, THEN add context and insights
-
----
-
-## 🚨 CRITICAL: Always Show Tables First, Then Add Insights
-
-**The issue was OMITTING the table display, not the insights!**
-
-**You are misinterpreting the requirement if you:**
-- Skip showing the table entirely
-- Provide ONLY bullet points without showing the table first
-- Describe what the table contains without actually displaying it
-
-**Correct behavior - Show table FIRST, then add value:**
+**Output Flow:**
 1. Run query with `snow sql --format=csv`
 2. Parse CSV internally (do NOT show raw CSV to user)
-3. Display ONLY formatted markdown table in your response
-4. Add insights, summaries, key findings (this is helpful!)
+3. Display formatted markdown table
+4. Add insights, summaries
 5. Offer CSV export
 
-**Example of WRONG behavior (showing raw CSV):**
+**Example:**
 ```
-❌ User: "Show me AI penetration by leader"
-❌ Agent: [Shows Bash tool output with raw CSV]
-           LEADER,TOTAL_ACCOUNTS,AI_ADOPTED,PENETRATION
-           AMER,1234,456,37.0
-           [Raw CSV visible to user - WRONG!]
-```
-
-**Example of WRONG behavior (missing table):**
-```
-❌ User: "Show me AI penetration by leader"
-❌ Agent: "Key insights from the data:
-           • AMER has 37% penetration
-           • EMEA has 36% penetration"
-           [NO TABLE SHOWN]
-           💾 Export to CSV?
-```
-
-**Example of CORRECT behavior (markdown table + insights):**
-```
-✅ User: "Show me AI penetration by leader"
-✅ Agent:
-   | Leader  | Total Accounts | AI Adopted | Penetration |
-   |---------|----------------|------------|-------------|
-   | AMER    | 1,234          | 456        | 37.0%       |
-   | EMEA    | 856            | 312        | 36.4%       |
-   | APAC    | 445            | 156        | 35.1%       |
-   | LATAM   | 234            | 78         | 33.3%       |
-   | SMB     | 2,890          | 945        | 32.7%       |
-   | Digital | 1,504          | 468        | 31.1%       |
-   | TOTAL   | 6,157          | 2,103      | 34.2%       |
-
-   **Key Insights:**
-   • AMER leads with 37% penetration
-   • Digital has lowest penetration at 31%
-   • Overall penetration is 34%
-
+User: "Show me AI penetration by leader"
+Agent: 
+   | Leader | Total Accounts | AI Adopted | Penetration |
+   |--------|----------------|------------|-------------|
+   | AMER   | 1,234          | 456        | 37.0%       |
+   
+   Key insight: AMER leads with 37% penetration
+   
    💾 Export to CSV?
 ```
 
-**The correct output includes BOTH the table AND helpful insights.**
+Do NOT: skip table, show raw CSV, describe without displaying.
 
 ---
 
@@ -242,40 +191,13 @@ Only generate CSV file instead if:
 
 **🚨 CRITICAL - Display Method (P0 - MANDATORY) 🚨**
 
-**EVERY `snow sql` command MUST include `--format=csv` when running queries**
+EVERY `snow sql` command MUST include `--format=csv`. Parse output internally, display as markdown table to user.
 
-Parse CSV internally, show ONLY formatted markdown table to user.
-
-**❌ WRONG - Missing --format=csv:**
 ```bash
-# No CSV output - can't parse
-snow sql -q "SELECT leader, COUNT(*) FROM ... GROUP BY leader"
-```
-
-**✅ CORRECT - Always include --format=csv:**
-```bash
-# Returns CSV that you parse internally and convert to markdown
 snow sql -q "SELECT leader, COUNT(*) FROM ... GROUP BY leader" --format=csv
 ```
 
-**Example output with --format=csv:**
-```
-+--------+-------------+----------+
-| Leader | Accounts    | ARR      |
-+--------+-------------+----------+
-| AMER   | 1,234       | $125.5M  |
-| EMEA   | 856         | $89.2M   |
-| APAC   | 445         | $45.3M   |
-+--------+-------------+----------+
-```
-
-**❌ DO NOT:**
-- Run `snow sql -q "..."` without `--format=csv` (NEVER!)
-- Use `--format=csv` for terminal display
-- Use Python scripts for display
-- Forget the `--format=csv` flag
-
-**✅ MANDATORY: Every snow sql command MUST have --format=csv**
+Do NOT: run without `--format=csv`, use Python for display, show raw CSV output.
 
 ## 🎯 Calculation Accuracy & Number Formatting (P0 - CRITICAL)
 
@@ -383,25 +305,10 @@ ORDER BY arr_tier
 
 ### Key Principles
 
-1. **Use raw numeric values in:**
-   - WHERE clauses
-   - GROUP BY clauses
-   - JOIN conditions
-   - SUM, AVG, COUNT calculations
-   - CASE statements for grouping
-
-2. **Apply formatting ONLY in:**
-   - Final SELECT column list (for display)
-   - After all calculations are complete
-
-3. **Work with integers when possible:**
-   - Use raw dollar amounts (integers) for calculations
-   - Divide and round only in final SELECT
-   - This prevents floating-point precision issues
-
-4. **Format for display, not for logic:**
-   - `$500K` is for humans to read
-   - `500000` is for computers to calculate
+1. Use raw numeric values in: WHERE, GROUP BY, JOIN, calculations, CASE grouping
+2. Apply formatting ONLY in final SELECT (for display)
+3. Work with integers when possible (prevents floating-point issues)
+4. Format for display, not logic: `$500K` = humans, `500000` = computers
 
 ## ✅ Priority Checklist (Before Building Queries)
 
@@ -547,6 +454,22 @@ WHERE rec_1_priority IN (1, 2)  -- Only high-priority recommendations
 `functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings`
 
 **CRITICAL**: Use this table for opportunity-level analysis (pipeline, bookings, competitive deals).
+
+**🚨 P0 RULE - DO NOT JOIN TO CUSTOMER_SUCCESS TABLE:**
+When analyzing pipeline/opportunities, use `REGION` and `PRO_FORMA_MARKET_SEGMENT` **directly from this table**. 
+**DO NOT** join to `CUSTOMER_SUCCESS__CS_RESET_DASHBOARD` - that table is ONLY for account-level analysis.
+
+**Example - CORRECT approach:**
+```sql
+SELECT 
+    REGION,
+    PRO_FORMA_MARKET_SEGMENT,
+    COUNT(*) as opp_count
+FROM functional.gtm_sales_ops.gtmsi_consolidated_pipeline_bookings
+WHERE DATE_LABEL = 'today' 
+  AND OPPORTUNITY_STATUS = 'Open'
+  -- Use REGION and PRO_FORMA_MARKET_SEGMENT directly from this table
+```
 
 **🚨 P0 RULE:** When query shows opportunities as rows (not aggregated), MUST include:
 1. `CRM_OPPORTUNITY_ID`
@@ -1438,59 +1361,7 @@ ORDER BY
 
 ### 3. Period-over-Period Comparison
 
-When comparing periods (MoM, QoQ, YoY):
-1. Create separate CTEs for each period's customer list
-2. Create separate CTEs for each period's AI penetration data
-3. Join and calculate changes in both absolute numbers and percentages
-4. Always show: current value, previous value, absolute change, percentage point change
-
-## How to Help Users
-
-### When User Asks for Analysis:
-
-1. **Understand the request**
-   - What metric? (AI penetration, account count, ARR, etc.)
-   - What breakdown? (by leader, segment, cohort, etc.)
-   - What time period? (current, comparison to past, trend)
-
-2. **Build the query**
-   - Use proper filters (SERVICE_DATE, AS_OF_DATE, CRM_NET_ARR_USD > 0)
-   - Apply leader logic if needed
-   - Use standard ordering
-   - Include TOTAL row for breakdowns
-
-3. **Execute with Snowflake CLI**
-   ```bash
-   /Applications/SnowflakeCLI.app/Contents/MacOS/snow sql -q "YOUR_QUERY" --format=csv
-   ```
-
-4. **Present results**
-   - Show in table format
-   - Highlight key insights
-   - Suggest follow-up questions if relevant
-
-### Example Interactions:
-
-**User:** "Show me AI penetration by leader"
-
-**You:**
-- Run the AI penetration by leader query
-- Show results in table format
-- Highlight: "Overall penetration is X%, with [leader] leading at Y%"
-
-**User:** "What about AMER specifically, broken down by segment?"
-
-**You:**
-- Run AI penetration by segment for AMER
-- Show results with segment ordering
-- Include TOTAL row
-
-**User:** "How has this changed since last quarter?"
-
-**You:**
-- Find the appropriate past date (end of previous quarter)
-- Run period-over-period comparison query
-- Show: current %, previous %, change in percentage points, absolute change in account numbers
+When comparing periods (MoM, QoQ, YoY): Create separate CTEs for each period, join, calculate changes. Show: current value, previous value, absolute change, percentage point change.
 
 ## Available Pre-built Reports
 
@@ -1544,29 +1415,9 @@ Users memorize commands → Users run `make` commands → Users see results
 
 ### Example Interactions:
 
-**User:** "Show me EMEA industry growth"
-**Agent Response:**
-- Recognize: "Industry Growth by Leader" pattern
-- Parameters: leader='EMEA', metric='industry', time='YoY'
-- Reference: `queries/industry/amer_industry_growth_yoy.sql` as template
-- Adapt: Change `WHERE ... = 'AMER'` to `WHERE ... = 'EMEA'`
-- Run query directly with Snowflake CLI
-- Present: "Here are the top 5 industries by YoY ARR growth for EMEA..."
-
-**User:** "Which countries are losing accounts?"
-**Agent Response:**
-- Recognize: "Countries with Decreases" pattern
-- Reference: `queries/geographic/country_decreases_yoy.sql`
-- Run query directly
-- Present: "Here are the top 5 countries with biggest account losses YoY..."
-
-**User:** "Top 10 countries by growth"
-**Agent Response:**
-- Recognize: "Country Growth YoY" pattern
-- Parameters: top_n=10 (instead of default 5)
-- Adapt: Change `WHERE rank <= 5` to `WHERE rank <= 10`
-- Run adapted query
-- Present results
+- "Show me EMEA industry growth" → Use `queries/industry/amer_industry_growth_yoy.sql`, change leader filter to EMEA
+- "Which countries are losing accounts?" → Use `queries/geographic/country_decreases_yoy.sql`
+- "Top 10 countries by growth" → Use country growth pattern, adjust `WHERE rank <= 10`
 
 ## Reference Query Library
 
@@ -1576,31 +1427,13 @@ Users memorize commands → Users run `make` commands → Users see results
 
 ### Geographic Analysis Patterns
 
-**Pattern: Top Countries (Current Snapshot)**
-- Template: `queries/geographic/top_countries_by_arr_and_accounts.sql`
-- User asks: "Show me top 10 countries by ARR"
-- You adapt: Change top N parameter, run query, show results
-- Adaptable: top N (5, 10, 20), metric (ARR or accounts)
-
-**Pattern: Country Growth YoY**
-- Template: `queries/geographic/country_growth_yoy.sql`
-- User asks: "Which countries are growing fastest?"
-- You adapt: Rank by growth %, adjust timeframe if needed
-- Adaptable: top N, time period (YoY, QoQ), metric (ARR/accounts)
-
-**Pattern: Countries with Decreases**
-- Template: `queries/geographic/country_decreases_yoy.sql`
-- User asks: "Which countries are losing accounts?"
-- You adapt: Filter for negative growth, show context
-- Adaptable: metric (accounts or ARR), time period
+- **Top Countries**: `queries/geographic/top_countries_by_arr_and_accounts.sql` - Adapt top N, metric (ARR/accounts)
+- **Country Growth YoY**: `queries/geographic/country_growth_yoy.sql` - Adapt top N, timeframe, metric
+- **Countries with Decreases**: `queries/geographic/country_decreases_yoy.sql` - Adapt metric, period
 
 ### Industry Analysis Patterns
 
-**Pattern: Industry Growth by Leader**
-- Template: `queries/industry/amer_industry_growth_yoy.sql` (AMER example)
-- User asks: "Show me EMEA industry growth" or "Top industries for APAC"
-- You adapt: Change leader filter (AMER → EMEA → APAC → LATAM → SMB → Digital)
-- Adaptable: any leader, top N, time period (YoY, QoQ)
+- **Industry Growth by Leader**: `queries/industry/amer_industry_growth_yoy.sql` - Change leader filter, adapt top N, timeframe
 
 ### Competitive Analysis Patterns
 
@@ -1896,126 +1729,19 @@ If no prebuilt query or pattern exists, THEN explore Snowflake tables. But this 
 
 ---
 
-### Response Style: BE CONCISE
+### Response Style
 
-**DON'T:**
-- ❌ Narrate every step: "Now I'm going to check...", "Let me search for..."
-- ❌ Show Snowflake connection messages
-- ❌ Explain why you're using Glob/Read
-- ❌ Show warnings unless critical
-
-**DO:**
-- ✅ Just run the query and show results
-- ✅ Present data in clean table format
-- ✅ Highlight key insights
-- ✅ Be direct and efficient
-
-**Example Good Response:**
-```
-Here are the top 5 countries by ARR growth YoY:
-
-[Table with results]
-
-Key insights:
-- Germany leads with +45% growth
-- Total growth across top 5: $12.5M
-
-💾 Export to CSV? (saved to outputs/country_growth_yoy.csv)
-```
-
-**Example Bad Response:**
-```
-Let me check if we have a prebuilt query for this...
-I'm going to use the Glob tool to search...
-Found queries/geographic/country_growth_yoy.sql
-Now reading the file...
-Let me run this query using Snowflake CLI...
-[Snowflake connection messages]
-Query executed successfully...
-[Then finally shows results]
-```
-
-**Handling Errors - DO NOT SHOW THEM:**
-```
-❌ BAD:
-[Shows SQL error with full stack trace]
-"Let me fix the SQL syntax error:"
-[Shows the fix]
-[Runs again]
-[Shows results]
-
-✅ GOOD:
-[Error happens internally]
-[Fix it silently]
-[Show only the final working results]
-```
-
-**If a query fails:**
-1. Fix the issue silently (don't show the error)
-2. Rerun the corrected query
-3. Show only the working results
-4. Only mention if the error is critical and needs user input
+Be concise: don't narrate steps, skip connection messages, hide warnings. If error occurs, fix silently and rerun. Show only: table + insights + CSV offer.
 
 ---
 
-### CSV Export - Always Offer and Be Efficient
+### CSV Export
 
-**After showing any table results, ALWAYS:**
+After showing table: (1) show time `⚡ Completed in X.Xs`, (2) offer CSV export, (3) cache results - don't re-query.
 
-1. **Show total response time** - from start of request to final output
-2. **Offer CSV export** (don't wait for user to ask)
-3. **Cache the query results** - save them once, don't re-query
-4. **Save to outputs/ directory** with descriptive filename
+**Timing:** Start timer FIRST (`date +%s.%N > /tmp/claude_query_start_time`), calculate in SAME Bash call as results display.
 
-**Timing Rule - CRITICAL:**
-
-The timer MUST be the **VERY FIRST Bash command** you execute when handling the request. Start timing BEFORE:
-- Reading any files (queries, patterns, etc.)
-- Searching for patterns with Glob/Grep
-- Building queries
-- Executing Snowflake queries
-
-**Implementation - Use Fixed Filename:**
-
-Your first Bash tool call should be:
-```bash
-date +%s.%N > /tmp/claude_query_start_time
-```
-
-Then at the end, calculate elapsed time in the SAME Bash call that shows results:
-```bash
-# Show query results first
-snow sql -q "SELECT ..." --format=csv
-
-# Then show timing (in same Bash call)
-START=$(cat /tmp/claude_query_start_time 2>/dev/null || echo 0)
-if [ "$START" != "0" ]; then
-  END=$(date +%s.%N)
-  ELAPSED=$(printf "%.1f" $(echo "$END - $START" | bc))
-  echo ""
-  echo "⚡ Completed in ${ELAPSED}s"
-  rm /tmp/claude_query_start_time
-fi
-```
-
-**Why:** Using a fixed filename avoids PID mismatches across tool calls. Calculate timing in the SAME Bash call as displaying results to avoid file not found errors.
-
-**Workflow:**
-```
-1. Capture start time (beginning of request handling)
-2. Process request (search patterns, build query, execute)
-3. Show table in terminal
-4. Capture end time and calculate total elapsed
-5. Show total time: "⚡ Completed in X.Xs"
-6. IMMEDIATELY offer: "💾 Export to CSV? (outputs/filename.csv)"
-7. If user says yes → Save cached results to CSV (don't re-query!)
-```
-
-**CSV Format Rules:**
-- Save to: `outputs/` or `outputs/data/` directory
-- Filename: Descriptive, lowercase, underscores (e.g., `country_growth_yoy.csv`)
-- Create directory if needed: `mkdir -p outputs`
-- Use the ALREADY FETCHED data (don't run query again)
+**CSV format:** Save to `outputs/`, descriptive lowercase filename, use cached data.
 
 **Example Implementation:**
 ```bash
@@ -2065,46 +1791,9 @@ echo "💾 Export to CSV? (outputs/region_summary.csv)"
 # snow sql -q "..." --format=csv > outputs/region_summary.csv
 ```
 
-**Key Points:**
-- ✅ Use `--format=csv` for terminal display (readable ASCII table)
-- ✅ Calculate timing in same Bash call as display
-- ✅ Use fixed filename `/tmp/claude_query_start_time` (not $$)
-- ✅ This is the PRIMARY method - simple and readable
-
-**❌ DO NOT use these for terminal display:**
-```bash
-# ❌ WRONG: CSV format for terminal (hard to read)
-snow sql -q "..." --format=csv
-
-# ❌ WRONG: Plain text without formatting
-snow sql -q "..." --format=plain
-
-# ❌ WRONG: Python scripts (causes UI collapse)
-python script.py | display results
-```
-
-**✅ CORRECT method for terminal display:**
-```bash
-# ✅ Use --format=csv for readable output
-snow sql -q "..." --format=csv
-```
-
-**For CSV export (if user requests):**
-```bash
-# If user wants CSV, run query again with --format=csv
-mkdir -p outputs
-snow sql -q "..." --format=csv > outputs/filename.csv
-```
-
 ---
 
-**Don't make users memorize commands.** They ask in natural language, you handle the SQL efficiently.
-
-**Makefile commands exist** (`make country-report`, `make bot-competitor-wins`, etc.) but are **secondary convenience tools**. When users ask for analysis, run queries directly - don't tell them to use make commands.
-
----
-
-Remember: You're here to make data analysis easy and fast for the Sales Strategy team. Be helpful, accurate, and follow the established patterns and conventions!
+Users ask in natural language - you handle SQL. Makefile commands are optional; run queries directly.
 
 ## 💰 ARR Formatting Standards
 
@@ -2155,13 +1844,7 @@ ORDER BY
   END
 ```
 
-**Custom Thresholds:**
-Users may request different bands (e.g., "$2M, $10M, $50M thresholds"). Always:
-- ✅ Order highest to lowest
-- ✅ Use $ formatting
-- ✅ Adapt CASE statement to match requested thresholds
-
-
+**Custom Thresholds:** Order highest to lowest, use $ formatting, adapt CASE to match requested thresholds.
 ---
 
 ## 📊 Output Format: When to Show Table vs Auto-Generate CSV
@@ -2212,163 +1895,28 @@ Generated 18 deals (3 per leader).
 ```
 
 **Key Rules:**
-1. ✅ **If you displayed a table** → OK to say "preview shown above" or "table above"
-2. ❌ **If you did NOT display a table** → Don't claim you did! Just offer CSV
-3. ✅ **Always try to show preview** with `snow sql --format=csv LIMIT 5`
-4. ✅ **If preview fails or can't be shown** → Go straight to CSV, don't fake it
-5. ❌ **NEVER** use phrases like "Full table shown above", "The table above", "Here is the table" unless `--format=csv` output appeared in your previous Bash tool result
+- If displayed table → can reference "table above"
+- If NO table → don't claim there was one
+- NEVER say "Full table shown above" unless `--format=csv` output appeared
 
 **🚨 DEFAULT: Show Markdown Table**
 
-**Unless** result is large (>25 rows OR ≥8 columns), **ALWAYS** display full markdown table.
+**Small Results** (≤25 rows AND <8 columns): Show full markdown table, offer CSV export
+**Large Results** (>25 rows OR ≥8 columns): Show 5-row preview, auto-generate CSV
 
-**Small Results** (≤25 rows AND <8 columns) → **MUST show markdown table**
-- Examples: "AI penetration by leader", "Top 10 countries", "Account count by segment"
-- Workflow: Run query → Parse CSV → Show full markdown table → Offer "💾 Export to CSV?" → Save cached results if yes
-- This is the DEFAULT mode - use it whenever possible
+Thresholds: 25 rows (readable without scrolling), 8 columns (fits terminal width), 5-row preview (quick glimpse)
 
-**Large Results** (>25 rows OR ≥8 columns) → Auto-generate CSV with 5-row markdown preview
-- Examples: "List all accounts with AI", "All opportunities vs competitors", "Wide tables with many columns"
-- Workflow: Run query with LIMIT 5 → Parse CSV → Show 5-row markdown preview → Save full query to CSV → Notify user
-- Only use this mode when table is too large to display fully
+### Implementation
 
-### Decision Criteria
+Small (≤25 rows, <8 cols): Run query → Show full table → Offer CSV
+Large (>25 rows OR ≥8 cols): LIMIT 5 preview → Save full CSV → Notify
 
-**Row Count + Column Count:**
-```
-1. Row count ≤ 25 AND Column count < 8:
-   - Show full markdown table
-   - Offer CSV export (use cached results)
-
-2. Row count > 25 OR Column count ≥ 8:
-   - Auto-generate CSV file
-   - Show preview as markdown table (first 5 rows only)
-   - Include summary: "Full list in CSV (N total rows)"
-```
-
-**Why these thresholds:**
-- **25 rows**: Readable in terminal for interactive analysis without scrolling
-- **8 columns**: Beyond this, tables become too wide for terminal display
-- **5-row preview**: Quick glimpse without overwhelming the screen
-
-**Priority:** If EITHER threshold is exceeded, use CSV + preview workflow.
-
-### Examples
-
-**✅ Show in Terminal (Summary):**
-```
-User: "Show me AI penetration by leader"
-Response:
-Leader    Total    AI Adopted    Penetration %
-AMER      1,234    456           37%
-EMEA      856      312           36%
-...
-TOTAL     6,157    2,103         34%
-
-💾 Export to CSV? (outputs/ai_penetration_by_leader.csv)
-```
-
-**✅ Auto-Generate CSV (Detailed List):**
-```
-User: "List all AMER Strategic accounts with AI Agents"
-Response:
-Preview (first 5 rows):
-Account Name              Account ID    ARR         AI Product
-Acme Corporation         ACC-12345     $2.5M       AI Agents Advanced
-Tech Solutions Inc       ACC-67890     $1.8M       AI Agents Advanced
-Global Systems LLC       ACC-23456     $1.5M       AI Agents Advanced
-Enterprise Co            ACC-34567     $1.3M       AI Agents Advanced
-DataCorp Inc            ACC-45678     $1.1M       AI Agents Advanced
-
-✅ Full list in CSV (234 total accounts)
-💾 Saved to: outputs/amer_strategic_ai_accounts.csv
-```
-
-**✅ Auto-Generate CSV (Large Dataset):**
-```
-User: "Show me all opportunities against bot competitors"
-Response:
-Preview (first 5 rows):
-Opportunity Name         Account         ARR      Competitor    Stage
-Enterprise Deal 2026     Acme Corp      $500K     Ada          Stage 3
-Digital Transform        Tech Co        $350K     Forethought  Stage 4
-AI Modernization         BigCo Ltd      $280K     Sierra       Stage 2
-Support Upgrade          StartupXYZ     $210K     Decagon      Stage 3
-Service Platform         MegaCorp       $195K     Ada          Stage 4
-
-✅ Full list in CSV (487 total opportunities)
-💾 Saved to: outputs/bot_competitor_opportunities.csv
-```
-
-### Implementation Pattern
-
-**For queries with ≤25 rows AND <8 columns:**
-1. Run query with `--format=csv`
-2. Show full table in terminal
-3. Offer CSV export: "💾 Export to CSV?"
-4. If yes → save cached results (don't re-query)
-
-**For queries with >25 rows OR ≥8 columns:**
-1. **Run preview query first** with `LIMIT 5` and `--format=csv`
-2. **Show 5-row preview in terminal** (MANDATORY - never skip this step)
-3. Run full query and save to CSV
-4. Notify: "✅ Full list in CSV (N total rows)"
-
-**Example for large datasets:**
-```bash
-# Step 1: Show preview (MUST DO THIS - only 5 rows)
-snow sql -q "SELECT ... FROM ... WHERE ... ORDER BY ... LIMIT 5" --format=csv
-
-# Step 2: Generate full CSV
-snow sql -q "SELECT ... FROM ... WHERE ... ORDER BY ..." --format=csv > outputs/filename.csv
-
-# Step 3: Count total rows
-TOTAL=$(snow sql -q "SELECT COUNT(*) FROM ... WHERE ..." --format=csv | tail -1)
-
-# Step 4: Notify user
-echo ""
-echo "✅ Full list in CSV ($TOTAL total rows)"
-echo "💾 Saved to: outputs/filename.csv"
-```
-
-### Keywords and Patterns
-
-**Auto-CSV (detailed lists or wide tables):**
-- "List of...", "All accounts...", "Show me accounts...", "Which accounts..."
-- "All opportunities...", "List opportunities...", "Give me a list..."
-- Queries returning account-level or opportunity-level detail rows
-- Queries with many columns (≥8 columns) even if few rows
-
-**Terminal Display (summaries):**
-- "Top N..." (where N ≤ 25), "Summary...", "Breakdown by...", "Count by..."
-- "AI penetration...", "Growth by...", "Total by..."
-- Aggregated/grouped queries with ≤25 rows AND <8 columns
-
-**Note:** If "Top N" query has N > 25 OR result has ≥8 columns, auto-generate CSV with 5-row preview.
-
-
+Keywords triggering auto-CSV: "List of...", "All accounts/opportunities...", account/opportunity-level rows, ≥8 columns
 ---
 
 ## 🔄 User Data Integration: Joining External Data with Snowflake
 
-### CRITICAL: Choose the Right Approach Based on Dataset Size
-
-When user wants to combine their data (CSV, Excel, list of IDs) with Snowflake data, use the FASTEST approach:
-
-### Decision Tree
-
-```
-User provides external data → Ask or check size:
-
-1. Small (<100 rows, or user pastes list)
-   → Use SQL VALUES clause (fastest, 1-2 seconds)
-
-2. Medium (100-10K rows, typical CSV)
-   → Use pandas in-memory join (fast, 5-10 seconds)
-
-3. Large (>10K rows, big dataset)
-   → Upload to Snowflake temp table (powerful, 30-60 seconds)
-```
+Choose approach by size: <100 rows → SQL VALUES (1-2s), 100-10K → pandas (5-10s), >10K → temp table (30-60s)
 
 ---
 
@@ -2400,11 +1948,7 @@ LEFT JOIN AI_COMBINED_CRM_DAILY_SNAPSHOT a ON c.CRM_ACCOUNT_ID = a.crm_account_i
 WHERE c.SERVICE_DATE = (SELECT MAX(SERVICE_DATE) FROM CUSTOMER_SUCCESS__CS_RESET_DASHBOARD)
 ```
 
-**Benefits:**
-- ✅ No file upload needed
-- ✅ Single SQL query
-- ✅ Runs in 1-2 seconds
-- ✅ No Python, no temp files
+Benefits: No upload, single SQL, 1-2s, no Python.
 
 ---
 
@@ -2563,4 +2107,3 @@ When user provides external data:
 | "Upload our full customer list" (50K rows) | Temp table | Large dataset |
 | "Are these accounts in Snowflake?" (20 IDs) | VALUES clause | Small lookup |
 | "Enrich this prospect list" (2K rows) | Pandas | Medium size |
-

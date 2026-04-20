@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ES ICP Strategy by Leader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+        }
+        h4 {
+            color: #7f8c8d;
+            margin-top: 15px;
+        }
+        .priority {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .constraint {
+            background-color: #f8d7da;
+            border-left: 5px solid #dc3545;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .metric {
+            margin: 10px 0;
+        }
+        .metric strong {
+            color: #2c3e50;
+            display: inline-block;
+            min-width: 120px;
+        }
+        ul {
+            margin: 10px 0;
+        }
+        .section-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+
+<h1>ES ICP Strategy by Leader</h1>
+<p style="text-align: center; color: #7f8c8d; font-size: 18px;">Leader-Level Prioritization with Segment & Use Case Recommendations</p>
+
+<hr>
+
+<h2>1. AMER LEADER</h2>
+
+<h3>Enterprise Segment</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 35%</div>
+<div class="metric"><strong>ARR:</strong> $12.60M (43% of AMER Expansion - highest contribution)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Multi-Department (36%), IT (23%), HR (11%)</div>
+<div class="metric"><strong>Motion:</strong> Multi-department expansion. Start IT, expand to HR/Operations</div>
+<div class="constraint"><strong>⚠️ Constraint:</strong> Product not ready for $100K+ accounts. Focus mid-market ($10K-$100K)</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 11%</div>
+<div class="metric"><strong>ARR:</strong> $1.60M (38% of AMER NB)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Multi-Department (37%), HR (25%), IT (20%)</div>
+<div class="metric"><strong>Motion:</strong> Multi-department value prop with HR as entry point</div>
+
+<h3>Commercial Segment</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 40% (highest in AMER)</div>
+<div class="metric"><strong>ARR:</strong> $10.55M (36% of AMER Expansion)</div>
+<div class="metric"><strong>Top Use Cases:</strong> IT (40%), Multi-Department (26%), HR (8%)</div>
+<div class="metric"><strong>Motion:</strong> IT-led with multi-department expansion. Product-ready.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 12% (highest in AMER for NB)</div>
+<div class="metric"><strong>ARR:</strong> $1.51M (36% of AMER NB)</div>
+<div class="metric"><strong>Top Use Cases:</strong> IT (57%), Multi-Department (30%)</div>
+<div class="metric"><strong>Motion:</strong> Pure IT buyer motion. Strongest NB performer.</div>
+
+<h3>Strategic Segment</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 50% (highest WR but limited scale)</div>
+<div class="metric"><strong>ARR:</strong> $2.35M (8% of AMER Expansion)</div>
+<div class="metric"><strong>Top Use Cases:</strong> HR (63%), Services (19%), Multi-Department (5%)</div>
+<div class="metric"><strong>Motion:</strong> HR/People Ops specialist. Opportunistic - pursue when inbound.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 7%</div>
+<div class="metric"><strong>ARR:</strong> $0.04M (1% of AMER NB - negligible)</div>
+<div class="metric"><strong>Motion:</strong> Not recommended for proactive NB prospecting.</div>
+
+<h3>Public Sector Segment</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 31%</div>
+<div class="metric"><strong>ARR:</strong> $3.81M (13% of AMER Expansion)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Multi-Department (46%), IT (28%), HR (7%)</div>
+<div class="metric"><strong>Motion:</strong> Multi-department buyer with heavier operational/HR focus.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 9%</div>
+<div class="metric"><strong>ARR:</strong> $1.01M (24% of AMER NB)</div>
+<div class="metric"><strong>Top Use Cases:</strong> IT (60%), Multi-Department (34%)</div>
+<div class="metric"><strong>Motion:</strong> IT-led but lower conversion. Niche play for HR/Workforce use cases.</div>
+
+<div class="priority">
+<h3>🎯 AMER PRIORITY RECOMMENDATION</h3>
+<p><strong>#1 Segment: Commercial</strong></p>
+<p><strong>Why:</strong> Best balance of win rates (40% Exp, 12% NB) + strong ARR ($10.55M Exp, $1.51M NB) + product-ready</p>
+<p><strong>vs Enterprise:</strong> Commercial has higher win rates (40% vs 35% Exp) and no product constraints</p>
+
+<p><strong>#1 Use Case: IT</strong></p>
+<p><strong>Why:</strong> 40% of Commercial expansion starts with IT, 57% of Commercial NB is IT-led</p>
+<p><strong>Expansion Path:</strong> IT → Multi-Department → HR/Operations</p>
+
+<p><strong>Motion:</strong></p>
+<ul>
+    <li>Expansion: IT buyer, expand to multi-department (40% of deals)</li>
+    <li>New Business: IT-led prospecting (57% of NB deals)</li>
+</ul>
+</div>
+
+<div class="section-break"></div>
+
+<h2>2. EMEA LEADER</h2>
+
+<h3>Enterprise Segment</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 33%</div>
+<div class="metric"><strong>ARR:</strong> $6.42M (60% of EMEA Expansion - highest contribution)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Operations (32%), IT (14%), HR (12%)</div>
+<div class="metric"><strong>Motion:</strong> Operations-heavy (unique to EMEA Enterprise). Multi-stakeholder.</div>
+<div class="constraint"><strong>⚠️ Constraint:</strong> Product not ready for $100K+ accounts. Mid-market only.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 11%</div>
+<div class="metric"><strong>ARR:</strong> $0.75M (44% of EMEA NB)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Multi-Department (34%), IT (23%), HR (16%)</div>
+<div class="metric"><strong>Motion:</strong> Multi-department value prop.</div>
+
+<h3>Commercial Segment</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 49% (exceptional - nearly 1 in 2 deals won)</div>
+<div class="metric"><strong>ARR:</strong> $2.03M (19% of EMEA Expansion)</div>
+<div class="metric"><strong>Top Use Cases:</strong> IT (36%), Multi-Department (15%), HR (15%)</div>
+<div class="metric"><strong>Motion:</strong> IT-led. Best win rate in entire EMEA. Product-ready.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 13% (highest in EMEA for NB)</div>
+<div class="metric"><strong>ARR:</strong> $0.85M (50% of EMEA NB - majority)</div>
+<div class="metric"><strong>Top Use Cases:</strong> IT (56%), Multi-Department (28%)</div>
+<div class="metric"><strong>Motion:</strong> Strong IT buyer motion. Represents half of EMEA NB ARR.</div>
+
+<h3>Strategic Segment</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 50% (excellent but limited scale)</div>
+<div class="metric"><strong>ARR:</strong> $2.35M (22% of EMEA Expansion)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Multi-Department (45%), HR (42%)</div>
+<div class="metric"><strong>Motion:</strong> HR/Multi-department focus. Only 32 accounts total - opportunistic.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> N/A</div>
+<div class="metric"><strong>ARR:</strong> $0.11M (6% of EMEA NB - very small)</div>
+<div class="metric"><strong>Motion:</strong> Not recommended for proactive NB.</div>
+
+<div class="priority">
+<h3>🎯 EMEA PRIORITY RECOMMENDATION</h3>
+<p><strong>#1 Segment: Commercial</strong></p>
+<p><strong>Why:</strong> Exceptional 49% expansion win rate (best in entire analysis) + 13% NB win rate + product-ready</p>
+<p><strong>vs Enterprise:</strong> Commercial wins 49% vs 33% for Enterprise, despite Enterprise having higher ARR</p>
+
+<p><strong>#1 Use Case: IT</strong></p>
+<p><strong>Why:</strong> 36% of Commercial expansion, 56% of Commercial NB is IT-led</p>
+<p><strong>Expansion Path:</strong> IT → Multi-Department → HR</p>
+
+<p><strong>Motion:</strong></p>
+<ul>
+    <li>Expansion: IT buyer, nearly 50% win rate (1 in 2 deals)</li>
+    <li>New Business: IT-led prospecting (56% of deals)</li>
+</ul>
+</div>
+
+<div class="section-break"></div>
+
+<h2>3. APAC LEADER</h2>
+
+<h3>Enterprise Segment</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 28%</div>
+<div class="metric"><strong>ARR:</strong> $0.99M (28% of APAC Expansion)</div>
+<div class="metric"><strong>Top Use Cases:</strong> IT (37%), HR (19%), Multi-Department (12%)</div>
+<div class="metric"><strong>Motion:</strong> IT-led but weaker than Commercial.</div>
+<div class="constraint"><strong>⚠️ Constraint:</strong> Product not ready for $100K+ accounts.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 9%</div>
+<div class="metric"><strong>ARR:</strong> $0.31M (28% of APAC NB)</div>
+<div class="metric"><strong>Motion:</strong> Lower priority. Commercial outperforms.</div>
+
+<h3>Commercial Segment</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 32% (highest in APAC)</div>
+<div class="metric"><strong>ARR:</strong> $2.53M (72% of APAC Expansion - dominant)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Multi-Department (39%), IT (28%), Operations (4%)</div>
+<div class="metric"><strong>Motion:</strong> Multi-department expansion with IT entry. Dominates APAC.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 11% (highest in APAC for NB)</div>
+<div class="metric"><strong>ARR:</strong> $0.79M (72% of APAC NB - dominant)</div>
+<div class="metric"><strong>Top Use Cases:</strong> IT (59%), Multi-Department (24%)</div>
+<div class="metric"><strong>Motion:</strong> IT-led. Represents 72% of APAC NB ARR.</div>
+
+<div class="priority">
+<h3>🎯 APAC PRIORITY RECOMMENDATION</h3>
+<p><strong>#1 Segment: Commercial</strong></p>
+<p><strong>Why:</strong> Dominates APAC - 72% of Expansion ARR + 72% of NB ARR. Best win rates (32% Exp, 11% NB)</p>
+<p><strong>vs Enterprise:</strong> Commercial wins 32% vs 28% Enterprise + has 2.5x the ARR</p>
+
+<p><strong>#1 Use Case: Multi-Department (Expansion) / IT (New Business)</strong></p>
+<p><strong>Why:</strong></p>
+<ul>
+    <li>Expansion: 39% of Commercial expansion is multi-department</li>
+    <li>New Business: 59% of Commercial NB is IT-led</li>
+</ul>
+<p><strong>Expansion Path:</strong> IT entry → Multi-Department expansion</p>
+
+<p><strong>Motion:</strong></p>
+<ul>
+    <li>Expansion: Multi-department focus (39% of deals), IT as entry</li>
+    <li>New Business: IT-led prospecting (59% of deals)</li>
+</ul>
+</div>
+
+<div class="section-break"></div>
+
+<h2>4. LATAM LEADER</h2>
+
+<h3>Enterprise Segment</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 32%</div>
+<div class="metric"><strong>ARR:</strong> $1.76M (28% of LATAM Expansion)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Multi-Department (24%), IT (14%), HR (8%)</div>
+<div class="metric"><strong>Motion:</strong> Multi-department but underperforms Commercial.</div>
+<div class="constraint"><strong>⚠️ Constraint:</strong> Product not ready for $100K+ accounts.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 5% (very low)</div>
+<div class="metric"><strong>ARR:</strong> $0.20M (38% of LATAM NB)</div>
+<div class="metric"><strong>Motion:</strong> Not recommended. Too low win rate.</div>
+
+<h3>Commercial Segment</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 41% (highest in LATAM)</div>
+<div class="metric"><strong>ARR:</strong> $4.51M (72% of LATAM Expansion - dominant)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Multi-Department (45%), IT (16%), HR (12%)</div>
+<div class="metric"><strong>Motion:</strong> Multi-department led. Dominates LATAM expansion (72%).</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 7% (highest in LATAM for NB)</div>
+<div class="metric"><strong>ARR:</strong> $0.33M (62% of LATAM NB)</div>
+<div class="metric"><strong>Motion:</strong> Multi-department value prop. Represents 62% of LATAM NB.</div>
+
+<div class="priority">
+<h3>🎯 LATAM PRIORITY RECOMMENDATION</h3>
+<p><strong>#1 Segment: Commercial</strong></p>
+<p><strong>Why:</strong> Dominates LATAM - 72% of Expansion ARR + 62% of NB ARR. Strong 41% expansion win rate.</p>
+<p><strong>vs Enterprise:</strong> Commercial wins 41% vs 32% Enterprise. Enterprise NB is only 5% (too low).</p>
+
+<p><strong>#1 Use Case: Multi-Department</strong></p>
+<p><strong>Why:</strong> 45% of Commercial expansion, primary buyer in LATAM</p>
+<p><strong>Expansion Path:</strong> Multi-Department → IT → HR</p>
+
+<p><strong>Motion:</strong></p>
+<ul>
+    <li>Expansion: Multi-department buyer (45% of deals)</li>
+    <li>New Business: Multi-department value prop</li>
+</ul>
+</div>
+
+<div class="section-break"></div>
+
+<h2>5. SMB LEADER (by Region)</h2>
+
+<h3>AMER Region</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 39%</div>
+<div class="metric"><strong>ARR:</strong> $2.56M (49% of SMB Expansion)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Multi-Department (36%), IT (28%), HR (9%)</div>
+<div class="metric"><strong>Motion:</strong> Multi-department expansion with IT entry.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 12%</div>
+<div class="metric"><strong>ARR:</strong> $2.07M (80% of SMB NB - dominant)</div>
+<div class="metric"><strong>Top Use Cases:</strong> IT (40%), Multi-Department (37%)</div>
+<div class="metric"><strong>Motion:</strong> IT-led. Represents 80% of all SMB NB ARR.</div>
+
+<h3>EMEA Region</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 41%</div>
+<div class="metric"><strong>ARR:</strong> $0.72M (14% of SMB Expansion)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Services (41%), IT (27%), Multi-Department (14%)</div>
+<div class="metric"><strong>Motion:</strong> Services/Operations focus (unique pattern).</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 18%</div>
+<div class="metric"><strong>ARR:</strong> $0.36M (14% of SMB NB)</div>
+<div class="metric"><strong>Motion:</strong> Higher NB win rate than AMER but smaller scale.</div>
+
+<h3>APAC Region</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 40%</div>
+<div class="metric"><strong>ARR:</strong> $0.64M (12% of SMB Expansion currently)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Multi-Department (29%), IT (34%), Services (2%)</div>
+<div class="metric"><strong>Whitespace:</strong> <span style="color: #e74c3c; font-weight: bold;">3,359 accounts at 7% penetration (MASSIVE OPPORTUNITY)</span></div>
+<div class="metric"><strong>Motion:</strong> High-velocity, product-led. Largest single expansion opportunity in ES.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 18%</div>
+<div class="metric"><strong>ARR:</strong> $0.10M (4% of SMB NB)</div>
+<div class="metric"><strong>Motion:</strong> Small base but opportunity to scale with expansion success.</div>
+
+<h3>LATAM Region</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 19%</div>
+<div class="metric"><strong>ARR:</strong> $0.27M (5% of SMB Expansion)</div>
+<div class="metric"><strong>Top Use Cases:</strong> Services (45%), Multi-Department (9%), IT (6%)</div>
+<div class="metric"><strong>Motion:</strong> Services/operations focus. Limited scale.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 30%</div>
+<div class="metric"><strong>ARR:</strong> $0.05M (2% of SMB NB)</div>
+<div class="metric"><strong>Motion:</strong> High win rate but very small ARR base.</div>
+
+<div class="priority">
+<h3>🎯 SMB LEADER PRIORITY RECOMMENDATION</h3>
+<p><strong>#1 Region: AMER (for current scale) + APAC (for future growth)</strong></p>
+<p><strong>Why AMER:</strong> 80% of SMB NB ARR ($2.07M), 49% of Expansion ARR ($2.56M)</p>
+<p><strong>Why APAC:</strong> 3,359 accounts at 7% penetration = largest whitespace opportunity</p>
+
+<p><strong>#1 Use Case:</strong></p>
+<ul>
+    <li>AMER: IT (40% of NB, 28% of Expansion)</li>
+    <li>APAC: Multi-Department (29% of Expansion) + IT (34%)</li>
+</ul>
+
+<p><strong>Motion:</strong></p>
+<ul>
+    <li>AMER: IT-led new business, multi-department expansion</li>
+    <li>APAC: High-velocity expansion pilot - 3,359 accounts available</li>
+</ul>
+</div>
+
+<div class="section-break"></div>
+
+<h2>6. DIGITAL LEADER (by Region)</h2>
+
+<h3>AMER Region</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 22%</div>
+<div class="metric"><strong>ARR:</strong> $0.38M (72% of Digital Expansion)</div>
+<div class="metric"><strong>Top Use Cases:</strong> IT (38%), Multi-Department (19%), Others (19%)</div>
+<div class="metric"><strong>Motion:</strong> IT-led. Majority of Digital expansion.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 24%</div>
+<div class="metric"><strong>ARR:</strong> $0.62M (69% of Digital NB - dominant)</div>
+<div class="metric"><strong>Top Use Cases:</strong> IT (54%), Multi-Department (20%)</div>
+<div class="metric"><strong>Motion:</strong> IT buyer focus. Dominates Digital NB.</div>
+
+<h3>EMEA Region</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 20%</div>
+<div class="metric"><strong>ARR:</strong> $0.08M (16% of Digital Expansion)</div>
+<div class="metric"><strong>Motion:</strong> Limited scale. Opportunistic only.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 23%</div>
+<div class="metric"><strong>ARR:</strong> $0.19M (21% of Digital NB)</div>
+<div class="metric"><strong>Motion:</strong> Smaller market but decent win rate.</div>
+
+<h3>APAC Region</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 16%</div>
+<div class="metric"><strong>ARR:</strong> $0.02M (5% of Digital Expansion)</div>
+<div class="metric"><strong>Motion:</strong> Very limited. Not priority.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 15%</div>
+<div class="metric"><strong>ARR:</strong> $0.05M (5% of Digital NB)</div>
+<div class="metric"><strong>Motion:</strong> Minimal scale.</div>
+
+<h3>LATAM Region</h3>
+
+<h4>Expansion ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 44% (highest Digital WR)</div>
+<div class="metric"><strong>ARR:</strong> $0.04M (7% of Digital Expansion)</div>
+<div class="metric"><strong>Motion:</strong> High win rate but very small base. Opportunistic.</div>
+
+<h4>New Business ICP:</h4>
+<div class="metric"><strong>Win Rate:</strong> 21%</div>
+<div class="metric"><strong>ARR:</strong> $0.04M (5% of Digital NB)</div>
+<div class="metric"><strong>Motion:</strong> Limited scale.</div>
+
+<div class="priority">
+<h3>🎯 DIGITAL LEADER PRIORITY RECOMMENDATION</h3>
+<p><strong>#1 Region: AMER</strong></p>
+<p><strong>Why:</strong> 69% of Digital NB ARR ($0.62M), 72% of Expansion ARR ($0.38M)</p>
+<p><strong>Others too small:</strong> EMEA/APAC/LATAM each <20% of Digital business</p>
+
+<p><strong>#1 Use Case: IT</strong></p>
+<p><strong>Why:</strong> 54% of AMER Digital NB, 38% of AMER Digital Expansion</p>
+<p><strong>Expansion Path:</strong> IT → Multi-Department</p>
+
+<p><strong>Motion:</strong></p>
+<ul>
+    <li>New Business: IT-led prospecting (54% of deals)</li>
+    <li>Expansion: IT buyer with multi-department growth</li>
+</ul>
+</div>
+
+<div class="section-break"></div>
+
+<h2>EXECUTIVE SUMMARY: Leader Priorities</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Leader</th>
+            <th>#1 Segment/Region</th>
+            <th>#1 Use Case</th>
+            <th>Expansion Win Rate</th>
+            <th>New Business Win Rate</th>
+            <th>Key Insight</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>AMER</td>
+            <td>Commercial</td>
+            <td>IT</td>
+            <td>40%</td>
+            <td>12%</td>
+            <td>Product-ready, highest win rates</td>
+        </tr>
+        <tr>
+            <td>EMEA</td>
+            <td>Commercial</td>
+            <td>IT</td>
+            <td>49%</td>
+            <td>13%</td>
+            <td>Best win rate in entire study (49%)</td>
+        </tr>
+        <tr>
+            <td>APAC</td>
+            <td>Commercial</td>
+            <td>Multi-Dept (Exp) / IT (NB)</td>
+            <td>32%</td>
+            <td>11%</td>
+            <td>Dominates 72% of APAC ARR</td>
+        </tr>
+        <tr>
+            <td>LATAM</td>
+            <td>Commercial</td>
+            <td>Multi-Department</td>
+            <td>41%</td>
+            <td>7%</td>
+            <td>Dominates 72% of Expansion ARR</td>
+        </tr>
+        <tr>
+            <td>SMB</td>
+            <td>AMER + APAC</td>
+            <td>IT (AMER) / Multi-Dept (APAC)</td>
+            <td>39-40%</td>
+            <td>12-18%</td>
+            <td>APAC: 3,359 accounts whitespace</td>
+        </tr>
+        <tr>
+            <td>Digital</td>
+            <td>AMER</td>
+            <td>IT</td>
+            <td>22%</td>
+            <td>24%</td>
+            <td>69% of Digital NB from AMER</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Key Strategic Insights</h2>
+
+<ul>
+    <li><strong>Commercial segment wins across all 4 regional leaders</strong> (AMER, EMEA, APAC, LATAM)</li>
+    <li><strong>IT use case is primary entry point</strong> for Commercial segment across all leaders</li>
+    <li><strong>Multi-department expansion</strong> is key growth path after IT entry</li>
+    <li><strong>EMEA Commercial has best performance</strong> - 49% expansion win rate (nearly 1 in 2 deals)</li>
+    <li><strong>APAC SMB is biggest opportunity</strong> - 3,359 accounts at 7% penetration</li>
+    <li><strong>Enterprise has product constraints</strong> - avoid $100K+ until product-ready</li>
+</ul>
+
+</body>
+</html>
