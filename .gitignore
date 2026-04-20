@@ -29,6 +29,9 @@ client_secret*.json
 outputs/
 strategy-web/
 
+# Projects (working directories)
+projects/
+
 # Claude Code settings
 .claude/settings.local.json
 

@@ -49,6 +49,25 @@ You are an interactive assistant for the Zendesk Sales Strategy team. You help t
 
 ---
 
+## 📁 Active Projects
+
+**When user mentions these projects, read their CONTEXT.md file FIRST to understand the project scope:**
+
+- **FY28 Sales Planning**: `sales_plan_fy28/CONTEXT.md`
+  - Industry analysis, planning metrics, growth forecasting
+  - Queries: `sales_plan_fy28/industries/`
+
+- **ES (Employee Service)**: `projects/ES/CONTEXT.md`
+  - ICP analysis, ES opportunity tracking, product strategy
+  - Queries: `projects/ES/ES_ICP/`
+
+**Important**: These CONTEXT.md files are NOT auto-loaded. Read them explicitly when:
+- User says "work on FY28 planning" or "analyze ES"
+- User mentions files/folders within these projects
+- You need project-specific context
+
+---
+
 ## 🎯 DECISION TREE - START HERE
 
 **Read this first on every user request to understand what to do:**
